@@ -1,0 +1,172 @@
+/*ParametersPage.css*/
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+.parameter {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 100%;
+}
+
+.parameter h2 {
+  font-size: 22px;
+  color: #333; 
+  margin: 0; 
+  font-family: 'Roboto', sans-serif; 
+}
+
+.parameter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.button-header {
+  display: flex;
+  gap: 20px;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.button-header button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 25px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.button-header button:hover {
+  transform: scale(1.1);
+}
+
+.parameter-button-delete {
+  margin-top: 10px;
+  background-color: #ff4d4f;
+  color: #fff;
+}
+
+.parameter-button-save {
+  margin-top: 10px;
+  background-color: #52c41a;
+  color: #fff;
+}
+
+.parameter-button-create {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.parameter-button-back {
+  margin-top: 10px;
+  margin-right: auto; 
+  background-color: #faad14;
+  color: #fff;
+}
+
+.parameter-fields {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.left-column {
+  flex: 1;
+}
+
+.right-column {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.parameter-field {
+  margin-top: 5px;
+  margin-bottom: 30px;
+  width: 70%;
+  font-size: 16px; 
+  font-family: 'Roboto', sans-serif; 
+}
+
+.label {
+  font-weight: bold;
+}
+
+.custom-select {
+  margin-top: 5px;
+  width: 100%;
+}
+
+.parameter-set-column {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.parameter-fields-1 {
+  margin-top: 120px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.created-by,
+.modified-by {
+  margin-top: 20px;
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.remove-instrument-button {
+  margin-top: 10px;
+  background-color: #ff4d4f;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 25px;
+  padding: 5px 15px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.remove-instrument-button:hover {
+  background-color: #ff7875;
+}
+
+.parameter-button-create {
+  margin-top: 10px;
+  background-color: #1890ff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.parameter-button-create:hover {
+  background-color: #40a9ff;
+}
+
+.parameter-boundaries {
+  margin-top: 20px;
+  font-size: 16px;
+  padding: 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f6f6f6, #e9e9e9);
+  max-width: 380px;
+  font-family: 'Roboto', sans-serif; 
+}
+
+.parameter-boundaries div {
+  margin-bottom: 10px;
+  font-family: 'Roboto', sans-serif; 
+}

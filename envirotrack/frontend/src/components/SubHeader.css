@@ -1,0 +1,35 @@
+/* SubHeader.css */
+
+.sub-header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #4596d1; 
+  padding: 10px 0;
+  transition: background-color 0.3s ease;
+}
+
+.sub-header a {
+  text-decoration: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 18px; 
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.sub-header a:hover {
+  background-color: #357dbf;
+  border-radius: 5px;
+  transform: scale(1.1);
+}
+
+.sub-header a.active {
+  background-color: #357dbf;
+  border-radius: 5px;
+}
+
+.sub-header a.active:hover {
+  transform: scale(1);
+  border-radius: 5px;
+}

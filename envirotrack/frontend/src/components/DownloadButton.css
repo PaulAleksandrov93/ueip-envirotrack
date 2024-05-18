@@ -1,0 +1,29 @@
+/* DownloadButton.css */ 
+
+.download-button {
+  position: fixed;
+  bottom: 100px; 
+  right: 20px;
+  background-color: #27ae60; 
+  color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s, transform 0.3s;
+  z-index: 1000;
+}
+  
+.download-icon {
+  width: 50%;
+  height: auto;
+  fill: white;
+}
+  
+.download-button:hover {
+  background-color: #219e49; 
+  transform: scale(1.1);
+}

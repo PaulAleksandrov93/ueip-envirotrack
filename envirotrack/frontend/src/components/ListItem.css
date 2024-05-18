@@ -1,0 +1,50 @@
+/* ListItem.css */
+
+.parameters-list-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  padding: 5px;
+  margin-bottom: 2px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+  display: flex;
+  flex-direction: column; 
+}
+
+.parameters-list-item:hover {
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.parameters-list-item h3 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.parameters {
+  margin-bottom: 10px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column; 
+}
+
+.parameter-item {
+  margin-bottom: 7px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.parameter-item span {
+  font-weight: bold;
+}
+.info .parameter-item {
+  background-color: #f2f2f2;
+  padding: 10px;
+  border-radius: 5px;
+}
+.invalid {
+  color: red;
+}

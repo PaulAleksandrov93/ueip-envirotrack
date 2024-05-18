@@ -1,0 +1,86 @@
+/* Header.css */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  background-color: #3498db;
+  padding: 15px; 
+}
+
+.app-logo {
+  width: 100px; 
+  height: auto;
+  fill: white;
+}
+
+.app-title {
+  margin-left: 15px; 
+  color: white;
+  font-size: 18px; 
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.user-greeting {
+  color: white;
+  margin-right: 15px;
+  font-size: 16px; 
+
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px; 
+  padding: 8px 12px; 
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  font-size: 14px; 
+}
+
+.nav-link:hover {
+  background-color: #2c3e50;
+  transform: scale(1.05);
+}
+
+.logout-link {
+  color: white;
+  cursor: pointer;
+  margin-right: 20px; 
+  transition: color 0.3s ease;
+  font-size: 14px; 
+}
+
+.logout-link:hover {
+  color: #e74c3c;
+}
+
+.user-greeting {
+  color: white;
+  margin-left: auto;
+}
+
+.app-header h1 {
+  font-size: 20px; 
+  margin: 0;
+}
+
+.login-button {
+  background-color: #4596d1;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px; 
+}
