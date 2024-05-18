@@ -74,8 +74,6 @@ docker-sync.yml
 .docker
 .dockerignore
 
-# MacOS
-.DS_Store
 
 # Windows
 Thumbs.db
