@@ -102,6 +102,33 @@
 .measuring-instruments-form button {
   font-size: 12px;
 }
+
 .measuring-instruments-form input.error {
   border-color: red;
+}
+
+/* Увеличиваем размер галочки и убираем выделение */
+.measuring-instruments-form input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.measuring-instruments-form input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Центрирование галочки */
+.suitability-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.suitability-label {
+  margin-bottom: 5px;
+  text-align: center;
 }

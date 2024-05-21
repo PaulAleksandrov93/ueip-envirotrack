@@ -9,9 +9,9 @@ const SubHeader = ({ setActiveComponent }) => {
 
   return (
     <div className='sub-header'>
-      <Link to="/" className={location.pathname === "/" ? 'active' : ''}>Параметры по помещениям</Link>
-      <Link to="/buildings" className={location.pathname === "/buildings" ? 'active' : ''} onClick={() => setActiveComponent('buildingParameters')}>Параметры по зданиям</Link>
-      <Link to="/instruments" className={location.pathname === "/instruments" ? 'active' : ''} onClick={() => setActiveComponent('measuringInstruments')}>Средства измерений</Link>
+      <Link to="/rooms-parameters" className={location.pathname === "/rooms-parameters" ? 'active' : ''} onClick={() => setActiveComponent('parameters')}>Параметры по помещениям</Link>
+      <Link to="/buildings-parameters" className={location.pathname === "/buildings-parameters" ? 'active' : ''} onClick={() => setActiveComponent('buildingParameters')}>Параметры по зданиям</Link>
+      <Link to="/measuring-instruments" className={location.pathname === "/measuring-instruments" ? 'active' : ''} onClick={() => setActiveComponent('measuringInstruments')}>Средства измерений</Link>
     </div>
   );
 };

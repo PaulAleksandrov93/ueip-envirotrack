@@ -85,7 +85,7 @@ def get_current_user(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getResponsibles(request):
     responsibles = Responsible.objects.all()
     serializer = ResponsibleSerializer(responsibles, many=True)
@@ -93,7 +93,7 @@ def getResponsibles(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getRooms(request):
     rooms = Room.objects.all()
     serializer = RoomSelectSerializer(rooms, many=True)
@@ -101,7 +101,7 @@ def getRooms(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getRoom(request, pk):
     try:
         room = Room.objects.get(id=pk, has_additional_parameters=True)
@@ -123,7 +123,7 @@ def getRoom(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getBuildings(request):
     buildings = Building.objects.all()
     serializer = BuildingSerializer(buildings, many=True)
@@ -131,7 +131,7 @@ def getBuildings(request):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def measurement_instrument_type_list(request):
     if request.method == 'GET':
         measurement_instrument_types = MeasurementInstrument.objects.all()
@@ -168,7 +168,7 @@ def measurement_instrument_type_detail(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getEnviromentalParameters(request):
     try:
         user = request.user
@@ -913,7 +913,7 @@ def deleteBuildingParameterSet(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getBuildingEnvironmentalParameters(request):
     try:
         user = request.user
@@ -1106,7 +1106,7 @@ def deleteBuildingEnvironmentalParameters(request, pk):
 
 # Фильтрация по помещениям
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def filterEnvironmentalParameters(request):
     try:
         responsible_id = request.query_params.get('responsible')
@@ -1143,7 +1143,7 @@ def filterEnvironmentalParameters(request):
     
 # Фильтрация по зданиям
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def filterBuildingEnvironmentalParameters(request):
     try:
         responsible_id = request.query_params.get('responsible')
