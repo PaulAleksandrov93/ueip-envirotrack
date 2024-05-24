@@ -7,7 +7,7 @@ import './AddButton.css';
 
 const AddButton = () => {
   return (
-    <Link to="/parameter/new" className='floating-button'>
+    <Link to="/room-parameter/new" className='floating-button'>
       <AddIcon className='add-icon' />
     </Link>
   );

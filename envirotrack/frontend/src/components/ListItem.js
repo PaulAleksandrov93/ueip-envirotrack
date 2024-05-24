@@ -1,11 +1,12 @@
 // ListItem.js
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import AuthContext from '../context/AuthContext';
+
 const renderParameterSets = ({ parameterSets, extendedParameterSets, storageParameterSets, room }) => {
   if (!parameterSets && !extendedParameterSets && !storageParameterSets) return '-';
 
-  // Определяем isStorage на основе наличия storageParameterSets и отсутствия других параметров
   const isStorage = storageParameterSets && storageParameterSets.length > 0 && !parameterSets && !extendedParameterSets;
   let sets;
   if (parameterSets && parameterSets.length > 0) {
@@ -76,7 +77,7 @@ const renderParameterSets = ({ parameterSets, extendedParameterSets, storagePara
       <div key={index} className="parameter-set">
         <div className="parameter-item">
           <span>Набор {index + 1}:</span>
-          {(isStorage) && (
+          {isStorage && (
             <>
               <span className={temperatureClassName}> Температура (°C): {temperature_celsius},</span>
               <span className={humidityClassName}> Влажность (%): {humidity_percentage},</span>
@@ -120,6 +121,7 @@ const renderParameterSets = ({ parameterSets, extendedParameterSets, storagePara
 
 const ListItem = ({ parameter }) => {
   const { room, parameter_sets, extended_parameter_sets, parameter_sets_for_storage, measurement_instruments } = parameter;
+  const { user } = useContext(AuthContext);
 
   const getDate = (dateString) => {
     const date = new Date(dateString);
@@ -130,29 +132,36 @@ const ListItem = ({ parameter }) => {
     return `${day}.${month}.${year}`;
   };
 
-  return (
-    <Link to={`/parameter/${parameter.id}`}>
-      <div className="parameters-list-item">
-        <h3>Помещение №: {room.room_number} | Ответственный: {parameter.responsible.last_name} {parameter.responsible.first_name} | Дата: {getDate(parameter.created_at)}</h3>
-        <div className="parameters">
-          {renderParameterSets({ parameterSets: parameter_sets, extendedParameterSets: extended_parameter_sets, storageParameterSets: parameter_sets_for_storage, room: room })}
-        </div>
-        <div className="info">
-          <div className="parameter-item">
-            <span>Средства измерений:</span> {measurement_instruments.length > 0 ?
-              measurement_instruments.map((instrument, index) => (
-                <span key={instrument.id}>
-                  {instrument.name} {instrument.type} ({instrument.serial_number}){index !== measurement_instruments.length - 1 ? '; ' : ''}
-                </span>
-              )) :
-              'Нет информации'
-            }
-          </div>
+  const content = (
+    <div className="parameters-list-item">
+      <h3>Помещение №: {room.room_number} | Ответственный: {parameter.responsible.last_name} {parameter.responsible.first_name} | Дата: {getDate(parameter.created_at)}</h3>
+      <div className="parameters">
+        {renderParameterSets({ parameterSets: parameter_sets, extendedParameterSets: extended_parameter_sets, storageParameterSets: parameter_sets_for_storage, room: room })}
+      </div>
+      <div className="info">
+        <div className="parameter-item">
+          <span>Средства измерений:</span> {measurement_instruments.length > 0 ?
+            measurement_instruments.map((instrument, index) => (
+              <span key={instrument.id}>
+                {instrument.name} {instrument.type} ({instrument.serial_number}){index !== measurement_instruments.length - 1 ? '; ' : ''}
+              </span>
+            )) :
+            'Нет информации'
+          }
         </div>
       </div>
+    </div>
+  );
+
+  return user ? (
+    <Link to={`/room-parameter/${parameter.id}`}>
+      {content}
     </Link>
+  ) : (
+    <div className="parameters-list-item non-clickable">
+      {content}
+    </div>
   );
 };
 
 export default ListItem;
-

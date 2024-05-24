@@ -640,7 +640,7 @@ const ParameterPage = () => {
             }
 
             // console.log('Созданы параметры, параметрсеты и записи');
-            navigate('/');
+            navigate('/rooms-parameters');
         } catch (error) {
             console.error('Error while creating parameters:', error);
         }
@@ -689,7 +689,7 @@ const ParameterPage = () => {
       });
       if (response.ok) {
         // console.log('Запись успешно обновлена');
-        navigate('/');
+        navigate('/rooms-parameters');
       } else {
         console.error('Failed to update parameter:', response.statusText);
       }
@@ -715,7 +715,7 @@ const ParameterPage = () => {
           if (!response.ok) {
             console.error('Failed to delete parameter:', response.statusText);
           } else {
-            navigate('/');
+            navigate('/rooms-parameters');
           }
         } catch (error) {
           console.error('Error while deleting parameter:', error);
@@ -726,7 +726,7 @@ const ParameterPage = () => {
 
 
   const handleSubmit = () => {
-    navigate('/');
+    navigate('/rooms-parameters');
   };
 
 

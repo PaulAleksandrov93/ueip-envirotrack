@@ -1,7 +1,8 @@
 // ListItemBuilding.js
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import AuthContext from '../context/AuthContext';
 import './ListItem.css';
 
 const renderParameterSets = ({ parameterSets, building }) => {
@@ -41,7 +42,8 @@ const renderParameterSets = ({ parameterSets, building }) => {
 
 const ListItemBuilding = ({ parameter }) => {
   const { building, parameter_sets, measurement_instruments } = parameter;
- 
+  const { user } = useContext(AuthContext);
+
   const getDate = (dateString) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -51,29 +53,37 @@ const ListItemBuilding = ({ parameter }) => {
     return `${day}.${month}.${year}`;
   };
 
-  return (
-    <Link to={`/building-parameter/${parameter.id}`}>
-      <div className="parameters-list-item">
-        <h3>Здание №: {building.building_number} | Ответственный: {parameter.responsible.last_name} {parameter.responsible.first_name} | Дата: {getDate(parameter.created_at)}</h3>
-        <div className="parameters-and-info">
-          <div className="parameters">
-            {renderParameterSets({ parameterSets: parameter_sets, building: building })}
-          </div>
-          <div className="info">
-            <div className="parameter-item">
-              <span>Средства измерений:</span> {measurement_instruments.length > 0 ?
-                measurement_instruments.map((instrument, index) => (
-                  <span key={instrument.id}>
-                    {instrument.name} {instrument.type} ({instrument.serial_number}){index !== measurement_instruments.length - 1 ? ', ' : ''}
-                  </span>
-                )) :
-                'Нет информации'
-              }
-            </div>
+  const content = (
+    <div className="parameters-list-item">
+      <h3>Здание №: {building.building_number} | Ответственный: {parameter.responsible.last_name} {parameter.responsible.first_name} | Дата: {getDate(parameter.created_at)}</h3>
+      <div className="parameters-and-info">
+        <div className="parameters">
+          {renderParameterSets({ parameterSets: parameter_sets, building: building })}
+        </div>
+        <div className="info">
+          <div className="parameter-item">
+            <span>Средства измерений:</span> {measurement_instruments.length > 0 ?
+              measurement_instruments.map((instrument, index) => (
+                <span key={instrument.id}>
+                  {instrument.name} {instrument.type} ({instrument.serial_number}){index !== measurement_instruments.length - 1 ? ', ' : ''}
+                </span>
+              )) :
+              'Нет информации'
+            }
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  return user ? (
+    <Link to={`/building-parameter/${parameter.id}`}>
+      {content}
     </Link>
+  ) : (
+    <div className="parameters-list-item non-clickable">
+      {content}
+    </div>
   );
 };
 

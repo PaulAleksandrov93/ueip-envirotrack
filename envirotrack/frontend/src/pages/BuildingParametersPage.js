@@ -349,7 +349,7 @@ const BuildingParametersPage = () => {
                 return;
             }
             // console.log('Созданы параметры, параметрсеты и записи (Для здания)');
-            navigate('/buildings');
+            navigate('/buildings-parameters');
         } catch (error) {
             console.error('Error while creating parameters:', error);
         }
@@ -397,7 +397,7 @@ const BuildingParametersPage = () => {
     
       if (response.ok) {
         // console.log('Запись успешно обновлена');
-        navigate('/buildings');
+        navigate('/buildings-parameters');
       } else {
         console.error('Failed to update parameter:', response.statusText);
       }
@@ -422,7 +422,7 @@ const BuildingParametersPage = () => {
           if (!response.ok) {
             console.error('Failed to delete parameter:', response.statusText);
           } else {
-            navigate('/buildings');
+            navigate('/buildings-parameters');
           }
         } catch (error) {
           console.error('Error while deleting parameter:', error);
@@ -432,7 +432,7 @@ const BuildingParametersPage = () => {
   };
 
   const handleSubmit = () => {
-    navigate('/buildings');
+    navigate('/buildings-parameters');
   };
 
   const handleChange = (field, value) => {
