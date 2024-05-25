@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -228,4 +229,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #     },
 # }
 
-# CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+CELERY_BEAT_SCHEDULE = {
+    'backup-db-everyday': {
+        'task': 'your_app.tasks.backup_db',
+        'schedule': crontab(hour=0, minute=0),  # каждый день в полночь
+    },
+}

@@ -434,7 +434,7 @@ const MeasuringInstrumentForm = ({ instrumentId, onCloseForm }) => {
             </label>
             <div className="suitability-container">
               <label htmlFor="suitability" className="suitability-label">
-                Пригодность СИ (если галочка установлена, СИ годен):
+                Пригодность СИ (годен/брак):
               </label>
               <input
                 type="checkbox"
