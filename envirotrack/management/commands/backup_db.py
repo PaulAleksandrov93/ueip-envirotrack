@@ -1,3 +1,5 @@
+# backup_db.py
+
 import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -12,7 +14,7 @@ class Command(BaseCommand):
         db_password = settings.DATABASES['default']['PASSWORD']
         db_host = settings.DATABASES['default']['HOST']
         db_port = settings.DATABASES['default']['PORT']
-        backup_dir = '/path/to/backup/dir'  # Замените на путь к каталогу бэкапов
+        backup_dir = '/backups'  # Путь до папки с бэкапами внутри контейнера
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         backup_file = f'{backup_dir}/{db_name}_{timestamp}.sql.gz'
 

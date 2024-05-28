@@ -1,3 +1,4 @@
+
 # version: '3.8'
 
 # services:
@@ -9,6 +10,7 @@
 #       - "8000:8000"
 #     volumes:
 #       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
 #     environment:
 #       - DB_ENGINE=django.db.backends.postgresql
 #       - DB_NAME=dbname
@@ -16,8 +18,10 @@
 #       - DB_PASS=pass
 #       - DB_HOST=database
 #       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
 #     depends_on:
 #       - database
+#       - redis
 #     command: sh -c "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'pass')\" && gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug"
 #     networks:
 #       - envirotrack-network
@@ -49,6 +53,52 @@
 #   redis:
 #     image: redis:7.0.5-alpine
 #     hostname: redis
+#     networks:
+#       - envirotrack-network
+
+#   celery:
+#     build: 
+#       context: .
+#       dockerfile: Dockerfile
+#     command: celery -A envirotrack worker --loglevel=info
+#     volumes:
+#       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
+#     environment:
+#       - DB_ENGINE=django.db.backends.postgresql
+#       - DB_NAME=dbname
+#       - DB_USER=dbuser
+#       - DB_PASS=pass
+#       - DB_HOST=database
+#       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
+#     depends_on:
+#       - web-app
+#       - redis
+#     networks:
+#       - envirotrack-network
+
+#   celery-beat:
+#     build: 
+#       context: .
+#       dockerfile: Dockerfile
+#     command: celery -A envirotrack beat --loglevel=info
+#     volumes:
+#       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
+#     environment:
+#       - DB_ENGINE=django.db.backends.postgresql
+#       - DB_NAME=dbname
+#       - DB_USER=dbuser
+#       - DB_PASS=pass
+#       - DB_HOST=database
+#       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
+#     depends_on:
+#       - web-app
+#       - redis
+#     networks:
+#       - envirotrack-network
 
 #   nginx:
 #     image: nginx:latest
@@ -90,7 +140,12 @@ services:
     depends_on:
       - database
       - redis
-    command: sh -c "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'pass')\" && gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug"
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'pass')\" &&
+      gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug
+      "
     networks:
       - envirotrack-network
 
@@ -177,6 +232,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - web-app
+      - web-app-frontend
     networks:
       - envirotrack-network
 

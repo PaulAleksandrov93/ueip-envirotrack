@@ -189,14 +189,16 @@ USE_TZ = True
 #     BASE_DIR / 'static',
 # ]
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'frontend/build/static',
 ]
 
+# STATIC_ROOT = BASE_DIR / 'frontend/build/static/admin/static'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'frontend/build/static/admin/static')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -234,7 +236,7 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
     'backup-db-everyday': {
-        'task': 'your_app.tasks.backup_db',
-        'schedule': crontab(hour=0, minute=0),  # каждый день в полночь
+        'task': 'your_app.tasks.backup_db', 
+        'schedule': crontab(hour=0, minute=0),  
     },
 }
