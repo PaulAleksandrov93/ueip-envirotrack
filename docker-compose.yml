@@ -239,3 +239,112 @@ services:
 networks:
   envirotrack-network:
     driver: bridge
+
+# Для yandexcloud
+# version: '3.8'
+
+# services:
+#   web-app:
+#     image: pauldev1237/web-app:latest
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
+#     environment:
+#       - DB_ENGINE=django.db.backends.postgresql
+#       - DB_NAME=dbname
+#       - DB_USER=dbuser
+#       - DB_PASS=pass
+#       - DB_HOST=database
+#       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
+#     depends_on:
+#       - database
+#       - redis
+#     networks:
+#       - envirotrack-network
+
+#   database:
+#     image: postgres:latest
+#     environment:
+#       - POSTGRES_DB=dbname
+#       - POSTGRES_USER=dbuser
+#       - POSTGRES_PASSWORD=pass
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - envirotrack-network
+
+#   web-app-frontend:
+#     image: pauldev1237/web-app-frontend:latest
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - ./frontend:/app
+#     depends_on:
+#       - web-app
+#     networks:
+#       - envirotrack-network
+
+#   redis:
+#     image: redis:7.0.5-alpine
+#     hostname: redis
+#     networks:
+#       - envirotrack-network
+
+#   celery:
+#     image: pauldev1237/celery:latest
+#     command: celery -A envirotrack worker --loglevel=info
+#     volumes:
+#       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
+#     environment:
+#       - DB_ENGINE=django.db.backends.postgresql
+#       - DB_NAME=dbname
+#       - DB_USER=dbuser
+#       - DB_PASS=pass
+#       - DB_HOST=database
+#       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
+#     depends_on:
+#       - web-app
+#       - redis
+#     networks:
+#       - envirotrack-network
+
+#   celery-beat:
+#     image: pauldev1237/celery-beat:latest
+#     command: celery -A envirotrack beat --loglevel=info
+#     volumes:
+#       - ./envirotrack:/envirotrack
+#       - ./backups:/backups  # Монтируем директорию для бэкапов
+#     environment:
+#       - DB_ENGINE=django.db.backends.postgresql
+#       - DB_NAME=dbname
+#       - DB_USER=dbuser
+#       - DB_PASS=pass
+#       - DB_HOST=database
+#       - DB_PORT=5432
+#       - CELERY_BROKER_URL=redis://redis:6379/0
+#     depends_on:
+#       - web-app
+#       - redis
+#     networks:
+#       - envirotrack-network
+
+#   nginx:
+#     image: pauldev1237/nginx:latest
+#     ports:
+#       - "80:80"
+#     volumes:
+#       - ./envirotrack/frontend/build:/app/frontend/build
+#     depends_on:
+#       - web-app
+#       - web-app-frontend
+#     networks:
+#       - envirotrack-network
+
+# networks:
+#   envirotrack-network:
+#     driver: bridge
