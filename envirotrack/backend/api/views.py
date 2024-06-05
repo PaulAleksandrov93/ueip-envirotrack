@@ -60,6 +60,29 @@ def getRoutes(request):
     return Response(routes)
 
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_current_user(request):
+#     """
+#     Получает информацию о текущем аутентифицированном пользователе.
+
+#     Args:
+#         request (Request): Объект HTTP-запроса.
+
+#     Returns:
+#         Response: JSON-ответ, содержащий информацию о текущем пользователе.
+#     """
+#     user = request.user
+#     if user.is_authenticated:
+#         try:
+#             responsible = Responsible.objects.get(user=user)
+#             serializer = ResponsibleSerializer(responsible)
+#             return Response(serializer.data)
+#         except Responsible.DoesNotExist:
+#             return Response({'error': 'Responsible not found'}, status=404)
+#     else:
+#         return Response({'error': 'User not authenticated'}, status=401)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_current_user(request):
@@ -75,35 +98,117 @@ def get_current_user(request):
     user = request.user
     if user.is_authenticated:
         try:
+            logger.info(f'Запрос на получение информации о текущем пользователе: {user.username}')
             responsible = Responsible.objects.get(user=user)
             serializer = ResponsibleSerializer(responsible)
+            logger.info(f'Информация о пользователе {user.username} успешно получена')
             return Response(serializer.data)
         except Responsible.DoesNotExist:
+            logger.warning(f'Ответственный для пользователя {user.username} не найден')
             return Response({'error': 'Responsible not found'}, status=404)
+        except Exception as e:
+            logger.error(f'Произошла ошибка при получении информации о текущем пользователе {user.username}: {e}', exc_info=True)
+            return Response({'error': 'Внутренняя ошибка сервера'}, status=500)
     else:
+        logger.warning('Пользователь не аутентифицирован')
         return Response({'error': 'User not authenticated'}, status=401)
 
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getResponsibles(request):
+#     responsibles = Responsible.objects.all()
+#     serializer = ResponsibleSerializer(responsibles, many=True)
+#     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getResponsibles(request):
-    responsibles = Responsible.objects.all()
-    serializer = ResponsibleSerializer(responsibles, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    """
+    Получает список всех ответственных.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий список всех ответственных.
+    """
+    try:
+        logger.info('Запрос на получение списка всех ответственных')
+        responsibles = Responsible.objects.all()
+        serializer = ResponsibleSerializer(responsibles, many=True)
+        logger.info('Список всех ответственных успешно получен')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении списка всех ответственных: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getRooms(request):
+#     rooms = Room.objects.all()
+#     serializer = RoomSelectSerializer(rooms, many=True)
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getRooms(request):
-    rooms = Room.objects.all()
-    serializer = RoomSelectSerializer(rooms, many=True)
-    return Response(serializer.data)
+    """
+    Получает список всех комнат.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий список всех комнат.
+    """
+    try:
+        logger.info('Запрос на получение списка всех комнат')
+        rooms = Room.objects.all()
+        serializer = RoomSelectSerializer(rooms, many=True)
+        logger.info('Список всех комнат успешно получен')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении списка всех комнат: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getRoom(request, pk):
+#     try:
+#         room = Room.objects.get(id=pk, has_additional_parameters=True)
+#         additional_parameters = room.additional_parameters
+#         serializer = RoomSelectSerializer(room)
+#         data = serializer.data
+#         if additional_parameters:
+#             data['additional_parameters'] = {
+#                 'voltage_min': additional_parameters.voltage_min,
+#                 'voltage_max': additional_parameters.voltage_max,
+#                 'frequency_min': additional_parameters.frequency_min,
+#                 'frequency_max': additional_parameters.frequency_max,
+#                 'radiation_min': additional_parameters.radiation_min,
+#                 'radiation_max': additional_parameters.radiation_max,
+#             }
+#         return Response(data)
+#     except Room.DoesNotExist:
+#         return Response({'error': 'Room not found'}, status=404)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getRoom(request, pk):
+    """
+    Получает информацию о комнате с дополнительными параметрами по её идентификатору.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Идентификатор комнаты.
+
+    Returns:
+        Response: JSON-ответ, содержащий информацию о комнате и её дополнительных параметрах.
+    """
     try:
+        logger.info(f'Запрос на получение информации о комнате с id={pk}')
         room = Room.objects.get(id=pk, has_additional_parameters=True)
         additional_parameters = room.additional_parameters
         serializer = RoomSelectSerializer(room)
@@ -117,53 +222,156 @@ def getRoom(request, pk):
                 'radiation_min': additional_parameters.radiation_min,
                 'radiation_max': additional_parameters.radiation_max,
             }
+        logger.info(f'Информация о комнате с id={pk} успешно получена')
         return Response(data)
     except Room.DoesNotExist:
+        logger.warning(f'Комната с id={pk} не найдена')
         return Response({'error': 'Room not found'}, status=404)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении информации о комнате с id={pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getBuildings(request):
+#     buildings = Building.objects.all()
+#     serializer = BuildingSerializer(buildings, many=True)
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getBuildings(request):
-    buildings = Building.objects.all()
-    serializer = BuildingSerializer(buildings, many=True)
-    return Response(serializer.data)
+    """
+    Получает список всех зданий.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий список всех зданий.
+    """
+    try:
+        logger.info('Запрос на получение списка всех зданий')
+        buildings = Building.objects.all()
+        serializer = BuildingSerializer(buildings, many=True)
+        logger.info('Список всех зданий успешно получен')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении списка зданий: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['GET', 'POST'])
+# # @permission_classes([IsAuthenticated])
+# def measurement_instrument_type_list(request):
+#     if request.method == 'GET':
+#         measurement_instrument_types = MeasurementInstrument.objects.all()
+#         serializer = MeasurementInstrumentSerializer(measurement_instrument_types, many=True)
+#         return Response(serializer.data)
+#     elif request.method == 'POST':
+#         serializer = MeasurementInstrumentSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 # @permission_classes([IsAuthenticated])
 def measurement_instrument_type_list(request):
-    if request.method == 'GET':
-        measurement_instrument_types = MeasurementInstrument.objects.all()
-        serializer = MeasurementInstrumentSerializer(measurement_instrument_types, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = MeasurementInstrumentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Обрабатывает запросы на получение списка типов измерительных инструментов и создание нового типа.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий список типов инструментов или созданный тип инструмента.
+    """
+    if request.method == 'GET':
+        try:
+            logger.info('Запрос на получение списка типов измерительных инструментов')
+            measurement_instrument_types = MeasurementInstrument.objects.all()
+            serializer = MeasurementInstrumentSerializer(measurement_instrument_types, many=True)
+            logger.info('Список типов измерительных инструментов успешно получен')
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f'Произошла ошибка при получении списка типов измерительных инструментов: {e}', exc_info=True)
+            return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'POST':
+        try:
+            logger.info('Запрос на создание нового типа измерительного инструмента')
+            serializer = MeasurementInstrumentSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                logger.info('Новый тип измерительного инструмента успешно создан')
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                logger.warning('Запрос на создание нового типа измерительного инструмента не прошел валидацию')
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f'Произошла ошибка при создании нового типа измерительного инструмента: {e}', exc_info=True)
+            return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['GET', 'PUT', 'DELETE'])
+# @permission_classes([IsAuthenticated])
+# def measurement_instrument_type_detail(request, pk):
+#     try:
+#         measurement_instrument_type = MeasurementInstrument.objects.get(pk=pk)
+#     except MeasurementInstrument.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     if request.method == 'GET':
+#         serializer = MeasurementInstrumentSerializer(measurement_instrument_type)
+#         return Response(serializer.data)
+#     elif request.method == 'PUT':
+#         serializer = MeasurementInstrumentSerializer(measurement_instrument_type, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     elif request.method == 'DELETE':
+#         measurement_instrument_type.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def measurement_instrument_type_detail(request, pk):
+    """
+    Обрабатывает запросы на получение, обновление и удаление конкретного типа измерительного инструмента.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ типа измерительного инструмента.
+
+    Returns:
+        Response: JSON-ответ, содержащий информацию о типе инструмента, результат обновления или статус удаления.
+    """
     try:
         measurement_instrument_type = MeasurementInstrument.objects.get(pk=pk)
+        logger.info(f'Запрос на получение типа измерительного инструмента с id={pk}')
     except MeasurementInstrument.DoesNotExist:
+        logger.error(f'Тип измерительного инструмента с id={pk} не найден')
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = MeasurementInstrumentSerializer(measurement_instrument_type)
+        logger.info(f'Тип измерительного инструмента с id={pk} успешно получен')
         return Response(serializer.data)
     elif request.method == 'PUT':
         serializer = MeasurementInstrumentSerializer(measurement_instrument_type, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            logger.info(f'Тип измерительного инструмента с id={pk} успешно обновлен')
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            logger.warning(f'Неудачная попытка обновления типа измерительного инструмента с id={pk}')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
         measurement_instrument_type.delete()
+        logger.info(f'Тип измерительного инструмента с id={pk} успешно удален')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
