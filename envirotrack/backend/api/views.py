@@ -413,6 +413,22 @@ def getEnviromentalParameters(request):
         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  
     
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getEnviromentalParameter(request, pk):
+#     """
+#     Возвращает конкретную запись с параметрами окружающей среды.
+
+#     Args:
+#         request (Request): Объект HTTP-запроса.
+
+#     Returns:
+#         Response: JSON-ответ с параметрами окружающей среды.
+#     """
+#     parameters = EnviromentalParameters.objects.get(id=pk)
+#     serializer = EnvironmentalParametersSerializer(parameters, many=False)
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getEnviromentalParameter(request, pk):
@@ -421,68 +437,197 @@ def getEnviromentalParameter(request, pk):
 
     Args:
         request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ записи с параметрами окружающей среды.
 
     Returns:
         Response: JSON-ответ с параметрами окружающей среды.
     """
-    parameters = EnviromentalParameters.objects.get(id=pk)
-    serializer = EnvironmentalParametersSerializer(parameters, many=False)
-    return Response(serializer.data)
+    try:
+        parameters = EnviromentalParameters.objects.get(id=pk)
+        logger.info(f'Запрос на получение параметров окружающей среды с id={pk}')
+        serializer = EnvironmentalParametersSerializer(parameters, many=False)
+        return Response(serializer.data)
+    except EnviromentalParameters.DoesNotExist:
+        logger.error(f'Параметры окружающей среды с id={pk} не найдены')
+        return Response({'error': 'Enviromental parameters not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f'Произошла ошибка во время выполнения getEnviromentalParameter: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createEnvironmentalParameters(request):
+#     try:
+#         # print("Request Data:", request.data)
+#         room_data = request.data.get('room')
+#         # print("Room Data:", room_data)
+#         room = Room.objects.get(room_number=room_data.get('room_number'))
+#         # print("Room:", room)
+#         created_at = request.data.get('created_at')
+#         existing_parameters = EnviromentalParameters.objects.filter(room=room, created_at=created_at)
+#         if existing_parameters.exists():
+#             print('Вы уже создавали запись на указанную дату')
+#             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+#         responsible_data = request.data.get('responsible')
+#         # print("Responsible Data:", responsible_data)
+#         responsible, _ = Responsible.objects.get_or_create(
+#             first_name=responsible_data.get('first_name'),
+#             last_name=responsible_data.get('last_name'),
+#             patronymic=responsible_data.get('patronymic')
+#         )
+#         # print("Responsible:", responsible)
+#         measurement_instruments_data = request.data.get('measurement_instruments')
+#         # print("Measurement Instruments Data:", measurement_instruments_data)
+#         measurement_instruments_data = request.data.get('measurement_instruments', [])
+#         measurement_instruments = []
+#         for instrument_data in measurement_instruments_data:
+#             instrument_dict = {
+#                 'name': instrument_data.get('name'),  
+#                 'type': instrument_data.get('type'),
+#                 'serial_number': instrument_data.get('serial_number'),
+#                 'calibration_date': instrument_data.get('calibration_date'),
+#                 'calibration_interval': instrument_data.get('calibration_interval')
+#             }
+#             measurement_instruments.append(instrument_dict)
+#         # print("Measurement Instruments:", measurement_instruments)
+#         # print('Room has additional parameters:', room.has_additional_parameters)
+#         parameter_sets_data = request.data.get('parameter_sets', [])
+#         extended_parameter_sets_data = request.data.get('extended_parameter_sets', [])
+#         parameter_sets_for_storage_data = request.data.get('parameter_sets_for_storage', [])
+
+#         if room.has_additional_parameters:
+#             # Если есть дополнительные параметры, то используем ExtendedParameterSet
+#             parameter_sets_data = []  # Оставляем parameter_sets пустым
+#         elif room.is_storage:
+#             parameter_sets_data = []  # Оставляем parameter_sets пустым
+#             extended_parameter_sets_ids = []  # Создаем пустой список для хранения идентификаторов расширенных параметрсетов
+#         else:
+#             # Если нет дополнительных параметров, то используем ParameterSet
+#             extended_parameter_sets_ids = []  # Создаем пустой список для хранения идентификаторов расширенных параметрсетов
+#         # print("Parameter Sets data:", parameter_sets_data)
+#         # print("Extended Parameter Sets data:", extended_parameter_sets_data)
+#         # print("Parameter Sets for Storage data:", parameter_sets_for_storage_data)
+#         parameter_set_ids = []
+#         for param_set_data in parameter_sets_data:
+#             parameter_set_id = param_set_data.get('id')
+
+#             if parameter_set_id:
+#                 try:
+#                     parameter_set = ParameterSet.objects.get(id=parameter_set_id)
+#                     parameter_set_ids.append(parameter_set.id)
+#                 except ParameterSet.DoesNotExist:
+#                     print(f"ParameterSet with id {parameter_set_id} does not exist")
+#                     return Response({'error': f'ParameterSet with id {parameter_set_id} does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 serializer = ParameterSetSerializer(data=param_set_data)
+#                 if serializer.is_valid():
+#                     parameter_set = serializer.save()
+#                     parameter_set_ids.append(parameter_set.id)
+#                 else:
+#                     print("ParameterSet Serializer Errors:", serializer.errors)
+#                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#         extended_parameter_sets_ids = []
+
+#         for extended_param_set_data in extended_parameter_sets_data:
+#             # Убираем поле 'id' из данных перед сериализацией
+#             extended_param_set_data.pop('id', None)
+#             serializer = ExtendedParameterSetSerializer(data=extended_param_set_data)
+#             if serializer.is_valid():
+#                 extended_parameter_set = serializer.save()
+#                 extended_parameter_sets_ids.append(extended_parameter_set.id)  # Добавляем идентификатор расширенного параметрсета в список
+#             else:
+#                 print("ExtendedParameterSet Serializer Errors:", serializer.errors)
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#         parameter_sets_for_storage_ids = []
+
+#         for param_set_data in parameter_sets_for_storage_data:
+#             parameter_set_id = param_set_data.get('id')
+
+#             if parameter_set_id:
+#                 try:
+#                     parameter_set = ParameterSetForStorage.objects.get(id=parameter_set_id)
+#                     parameter_sets_for_storage_ids.append(parameter_set.id)
+#                 except ParameterSetForStorage.DoesNotExist:
+#                     print(f"ParameterSetForStorage with id {parameter_set_id} does not exist")
+#                     return Response({'error': f'ParameterSetForStorage with id {parameter_set_id} does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 serializer = ParameterSetForStorageSerializer(data=param_set_data)
+#                 if serializer.is_valid():
+#                     parameter_set = serializer.save()
+#                     parameter_sets_for_storage_ids.append(parameter_set.id)
+#                 else:
+#                     print("ParameterSetForStorage Serializer Errors:", serializer.errors)
+#                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#         data = {
+#             'room': room_data,
+#             'responsible': responsible_data,
+#             'measurement_instruments': measurement_instruments,
+#             'parameter_sets': parameter_sets_data,
+#             'extended_parameter_sets': extended_parameter_sets_data,
+#             'parameter_sets_for_storage': parameter_sets_for_storage_data,
+#             'created_at': request.data.get('created_at')
+#         }
+#         # print("Data:", data)
+#         serializer = EnvironmentalParametersSerializer(data=data, context={'request': request})
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             print("Serializer Errors:", serializer.errors)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     except Room.DoesNotExist:
+#         print("Room not found")
+#         return Response({'error': 'Room not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createEnvironmentalParameters(request):
     try:
-        # print("Request Data:", request.data)
+        logger.info("Получен запрос на создание параметров окружающей среды")
         room_data = request.data.get('room')
-        # print("Room Data:", room_data)
         room = Room.objects.get(room_number=room_data.get('room_number'))
-        # print("Room:", room)
         created_at = request.data.get('created_at')
+        
         existing_parameters = EnviromentalParameters.objects.filter(room=room, created_at=created_at)
         if existing_parameters.exists():
-            print('Вы уже создавали запись на указанную дату')
+            logger.warning('Запись на указанную дату уже существует')
             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
         responsible_data = request.data.get('responsible')
-        # print("Responsible Data:", responsible_data)
         responsible, _ = Responsible.objects.get_or_create(
             first_name=responsible_data.get('first_name'),
             last_name=responsible_data.get('last_name'),
             patronymic=responsible_data.get('patronymic')
         )
-        # print("Responsible:", responsible)
-        measurement_instruments_data = request.data.get('measurement_instruments')
-        # print("Measurement Instruments Data:", measurement_instruments_data)
+        
         measurement_instruments_data = request.data.get('measurement_instruments', [])
         measurement_instruments = []
         for instrument_data in measurement_instruments_data:
             instrument_dict = {
-                'name': instrument_data.get('name'),  
+                'name': instrument_data.get('name'),
                 'type': instrument_data.get('type'),
                 'serial_number': instrument_data.get('serial_number'),
                 'calibration_date': instrument_data.get('calibration_date'),
                 'calibration_interval': instrument_data.get('calibration_interval')
             }
             measurement_instruments.append(instrument_dict)
-        # print("Measurement Instruments:", measurement_instruments)
-        # print('Room has additional parameters:', room.has_additional_parameters)
+        
         parameter_sets_data = request.data.get('parameter_sets', [])
         extended_parameter_sets_data = request.data.get('extended_parameter_sets', [])
         parameter_sets_for_storage_data = request.data.get('parameter_sets_for_storage', [])
 
         if room.has_additional_parameters:
-            # Если есть дополнительные параметры, то используем ExtendedParameterSet
-            parameter_sets_data = []  # Оставляем parameter_sets пустым
+            parameter_sets_data = [] 
         elif room.is_storage:
-            parameter_sets_data = []  # Оставляем parameter_sets пустым
-            extended_parameter_sets_ids = []  # Создаем пустой список для хранения идентификаторов расширенных параметрсетов
+            parameter_sets_data = []
+            extended_parameter_sets_ids = []
         else:
-            # Если нет дополнительных параметров, то используем ParameterSet
-            extended_parameter_sets_ids = []  # Создаем пустой список для хранения идентификаторов расширенных параметрсетов
-        # print("Parameter Sets data:", parameter_sets_data)
-        # print("Extended Parameter Sets data:", extended_parameter_sets_data)
-        # print("Parameter Sets for Storage data:", parameter_sets_for_storage_data)
+            extended_parameter_sets_ids = []
+
         parameter_set_ids = []
         for param_set_data in parameter_sets_data:
             parameter_set_id = param_set_data.get('id')
@@ -492,7 +637,7 @@ def createEnvironmentalParameters(request):
                     parameter_set = ParameterSet.objects.get(id=parameter_set_id)
                     parameter_set_ids.append(parameter_set.id)
                 except ParameterSet.DoesNotExist:
-                    print(f"ParameterSet with id {parameter_set_id} does not exist")
+                    logger.error(f"ParameterSet with id {parameter_set_id} does not exist")
                     return Response({'error': f'ParameterSet with id {parameter_set_id} does not exist'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = ParameterSetSerializer(data=param_set_data)
@@ -500,24 +645,21 @@ def createEnvironmentalParameters(request):
                     parameter_set = serializer.save()
                     parameter_set_ids.append(parameter_set.id)
                 else:
-                    print("ParameterSet Serializer Errors:", serializer.errors)
+                    logger.error("ParameterSet Serializer Errors: %s", serializer.errors)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         extended_parameter_sets_ids = []
-
         for extended_param_set_data in extended_parameter_sets_data:
-            # Убираем поле 'id' из данных перед сериализацией
             extended_param_set_data.pop('id', None)
             serializer = ExtendedParameterSetSerializer(data=extended_param_set_data)
             if serializer.is_valid():
                 extended_parameter_set = serializer.save()
-                extended_parameter_sets_ids.append(extended_parameter_set.id)  # Добавляем идентификатор расширенного параметрсета в список
+                extended_parameter_sets_ids.append(extended_parameter_set.id)
             else:
-                print("ExtendedParameterSet Serializer Errors:", serializer.errors)
+                logger.error("ExtendedParameterSet Serializer Errors: %s", serializer.errors)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         parameter_sets_for_storage_ids = []
-
         for param_set_data in parameter_sets_for_storage_data:
             parameter_set_id = param_set_data.get('id')
 
@@ -526,7 +668,7 @@ def createEnvironmentalParameters(request):
                     parameter_set = ParameterSetForStorage.objects.get(id=parameter_set_id)
                     parameter_sets_for_storage_ids.append(parameter_set.id)
                 except ParameterSetForStorage.DoesNotExist:
-                    print(f"ParameterSetForStorage with id {parameter_set_id} does not exist")
+                    logger.error(f"ParameterSetForStorage with id {parameter_set_id} does not exist")
                     return Response({'error': f'ParameterSetForStorage with id {parameter_set_id} does not exist'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = ParameterSetForStorageSerializer(data=param_set_data)
@@ -534,7 +676,7 @@ def createEnvironmentalParameters(request):
                     parameter_set = serializer.save()
                     parameter_sets_for_storage_ids.append(parameter_set.id)
                 else:
-                    print("ParameterSetForStorage Serializer Errors:", serializer.errors)
+                    logger.error("ParameterSetForStorage Serializer Errors: %s", serializer.errors)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = {
@@ -546,26 +688,161 @@ def createEnvironmentalParameters(request):
             'parameter_sets_for_storage': parameter_sets_for_storage_data,
             'created_at': request.data.get('created_at')
         }
-        # print("Data:", data)
+        
         serializer = EnvironmentalParametersSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            logger.info("Успешно создана запись с параметрами окружающей среды")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print("Serializer Errors:", serializer.errors)
+            logger.error("EnvironmentalParametersSerializer Errors: %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     except Room.DoesNotExist:
-        print("Room not found")
+        logger.error("Room not found")
         return Response({'error': 'Room not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка во время выполнения createEnvironmentalParameters: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateEnvironmentalParameters(request, pk):
+#     try:
+#         environmental_params = EnviromentalParameters.objects.get(pk=pk)
+#     except EnviromentalParameters.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = EnvironmentalParametersSerializer(instance=environmental_params, data=request.data, context={'request': request})
+    
+#     modified_by_data = request.data.get('modified_by')
+#     user_id = modified_by_data.get('user')
+#     try:
+#         modified_by_user = User.objects.get(id=user_id)
+#         environmental_params.modified_by = modified_by_user
+#     except User.DoesNotExist:
+#         print(f'Пользователь с id {user_id} не существует.')
+    
+#     if serializer.is_valid():
+#         room_data = request.data.get('room')
+#         room_instance, _ = Room.objects.get_or_create(room_number=room_data.get('room_number'))
+#         # Получаем дату из запроса
+#         created_at_data = request.data.get('created_at')
+#         # Проверяем, существует ли запись для данного помещения на эту дату
+#         existing_parameters = EnviromentalParameters.objects.filter(room=room_instance, created_at=created_at_data).exclude(pk=pk)
+#         if existing_parameters.exists():
+#             print('Вы уже создавали запись на указанную дату')
+#             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         has_additional_parameters = room_instance.has_additional_parameters if room_instance else False
+#         if has_additional_parameters:
+#             measurement_instrument_data = request.data.get('measurement_instrument')
+#             measurement_instruments_data = request.data.get('measurement_instruments')
+#             created_at_data = request.data.get('created_at')
+#             extended_parameter_sets_data = request.data.get('extended_parameter_sets', [])
+#             measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
+#             measurement_instruments = []
+
+#             if measurement_instruments_data:
+#                 for instrument_data in measurement_instruments_data:
+#                     measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
+#                     measurement_instruments.append(measurement_instrument_instance)
+
+#             extended_parameter_sets = []
+
+#             for extended_param_set_data in extended_parameter_sets_data:
+#                 extended_parameter_set = ExtendedParameterSet.objects.create(
+#                     temperature_celsius=extended_param_set_data.get('temperature_celsius'),
+#                     humidity_percentage=extended_param_set_data.get('humidity_percentage'),
+#                     pressure_kpa=extended_param_set_data.get('pressure_kpa'),
+#                     pressure_mmhg=extended_param_set_data.get('pressure_mmhg'),
+#                     time=extended_param_set_data.get('time'),
+#                     voltage=extended_param_set_data.get('voltage'),
+#                     frequency=extended_param_set_data.get('frequency'),
+#                     radiation=extended_param_set_data.get('radiation')
+#                 )
+#                 extended_parameter_sets.append(extended_parameter_set)
+
+#             environmental_params.measurement_instruments.set(measurement_instruments)
+#             environmental_params.extended_parameter_sets.set(extended_parameter_sets)
+#             environmental_params.created_at = created_at_data
+#             environmental_params.save()
+#         elif room_instance.is_storage:
+#             print('room_instance.is_storage:', room_instance.is_storage)
+#             measurement_instrument_data = request.data.get('measurement_instrument')
+#             measurement_instruments_data = request.data.get('measurement_instruments')
+#             created_at_data = request.data.get('created_at')
+#             parameter_sets_for_storage_data = request.data.get('parameter_sets_for_storage', [])
+            
+#             measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
+
+#             measurement_instruments = []
+
+#             if measurement_instruments_data:
+#                 for instrument_data in measurement_instruments_data:
+#                     measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
+#                     measurement_instruments.append(measurement_instrument_instance)
+#             # Обработка параметрсетов для КВХ
+#             parameter_sets_for_storage = []
+
+#             for param_set_data in parameter_sets_for_storage_data:
+#                 parameter_set_for_storage = ParameterSetForStorage.objects.create(
+#                     temperature_celsius=param_set_data.get('temperature_celsius'),
+#                     humidity_percentage=param_set_data.get('humidity_percentage'),
+#                     time=param_set_data.get('time')
+#                 )
+#                 parameter_sets_for_storage.append(parameter_set_for_storage)
+            
+#             environmental_params.measurement_instruments.set(measurement_instruments)
+#             environmental_params.parameter_sets_for_storage.set(parameter_sets_for_storage)
+#             environmental_params.created_at = created_at_data
+#             environmental_params.save()
+#         else:
+#             measurement_instrument_data = request.data.get('measurement_instrument')
+#             measurement_instruments_data = request.data.get('measurement_instruments')
+#             created_at_data = request.data.get('created_at')
+#             parameter_sets_data = request.data.get('parameter_sets', [])
+            
+#             measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
+
+#             measurement_instruments = []
+
+#             if measurement_instruments_data:
+#                 for instrument_data in measurement_instruments_data:
+#                     measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
+#                     measurement_instruments.append(measurement_instrument_instance)
+
+#             parameter_sets = []
+
+#             for param_set_data in parameter_sets_data:
+#                 parameter_set = ParameterSet.objects.create(
+#                     temperature_celsius=param_set_data.get('temperature_celsius'),
+#                     humidity_percentage=param_set_data.get('humidity_percentage'),
+#                     pressure_kpa=param_set_data.get('pressure_kpa'),
+#                     pressure_mmhg=param_set_data.get('pressure_mmhg'),
+#                     time=param_set_data.get('time')
+#                 )
+#                 parameter_sets.append(parameter_set)
+
+#             environmental_params.measurement_instruments.set(measurement_instruments)
+#             environmental_params.parameter_sets.set(parameter_sets)
+#             environmental_params.created_at = created_at_data
+#             environmental_params.save()
+            
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+#     print("Serializer Errors:", serializer.errors)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateEnvironmentalParameters(request, pk):
     try:
+        logger.info(f'Запрос на обновление параметров окружающей среды с ID {pk}')
         environmental_params = EnviromentalParameters.objects.get(pk=pk)
     except EnviromentalParameters.DoesNotExist:
+        logger.error(f'Параметры окружающей среды с ID {pk} не найдены')
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     serializer = EnvironmentalParametersSerializer(instance=environmental_params, data=request.data, context={'request': request})
@@ -576,17 +853,16 @@ def updateEnvironmentalParameters(request, pk):
         modified_by_user = User.objects.get(id=user_id)
         environmental_params.modified_by = modified_by_user
     except User.DoesNotExist:
-        print(f'Пользователь с id {user_id} не существует.')
-    
+        logger.error(f'Пользователь с ID {user_id} не существует')
+
     if serializer.is_valid():
         room_data = request.data.get('room')
         room_instance, _ = Room.objects.get_or_create(room_number=room_data.get('room_number'))
-        # Получаем дату из запроса
         created_at_data = request.data.get('created_at')
-        # Проверяем, существует ли запись для данного помещения на эту дату
+        
         existing_parameters = EnviromentalParameters.objects.filter(room=room_instance, created_at=created_at_data).exclude(pk=pk)
         if existing_parameters.exists():
-            print('Вы уже создавали запись на указанную дату')
+            logger.warning('Запись на указанную дату уже существует')
             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
         has_additional_parameters = room_instance.has_additional_parameters if room_instance else False
@@ -623,7 +899,6 @@ def updateEnvironmentalParameters(request, pk):
             environmental_params.created_at = created_at_data
             environmental_params.save()
         elif room_instance.is_storage:
-            print('room_instance.is_storage:', room_instance.is_storage)
             measurement_instrument_data = request.data.get('measurement_instrument')
             measurement_instruments_data = request.data.get('measurement_instruments')
             created_at_data = request.data.get('created_at')
@@ -637,7 +912,7 @@ def updateEnvironmentalParameters(request, pk):
                 for instrument_data in measurement_instruments_data:
                     measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
                     measurement_instruments.append(measurement_instrument_instance)
-            # Обработка параметрсетов для КВХ
+
             parameter_sets_for_storage = []
 
             for param_set_data in parameter_sets_for_storage_data:
@@ -684,12 +959,34 @@ def updateEnvironmentalParameters(request, pk):
             environmental_params.created_at = created_at_data
             environmental_params.save()
             
+        logger.info(f'Параметры окружающей среды с ID {pk} успешно обновлены')
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    print("Serializer Errors:", serializer.errors)
+    logger.error("Serializer Errors: %s", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteEnvironmentalParameters(request, pk):
+#     """
+#     Удаляет существующий набор параметров окружающей среды.
+
+#     Args:
+#         request (Request): Объект HTTP-запроса.
+#         pk (int): Первичный ключ параметров окружающей среды.
+
+#     Returns:
+#         Response: JSON-ответ, указывающий на успешное или неудачное выполнение операции.
+#     """
+#     try:
+#         environmental_params = EnviromentalParameters.objects.get(pk=pk)
+#     except EnviromentalParameters.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     environmental_params.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteEnvironmentalParameters(request, pk):
@@ -704,93 +1001,273 @@ def deleteEnvironmentalParameters(request, pk):
         Response: JSON-ответ, указывающий на успешное или неудачное выполнение операции.
     """
     try:
+        logger.info(f'Запрос на удаление параметров окружающей среды с ID {pk}')
         environmental_params = EnviromentalParameters.objects.get(pk=pk)
     except EnviromentalParameters.DoesNotExist:
+        logger.error(f'Параметры окружающей среды с ID {pk} не найдены')
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     environmental_params.delete()
+    logger.info(f'Параметры окружающей среды с ID {pk} успешно удалены')
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getParameterSets(request):
+#     parameter_sets = ParameterSet.objects.all()
+#     serializer = ParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getParameterSets(request):
-    parameter_sets = ParameterSet.objects.all()
-    serializer = ParameterSetSerializer(parameter_sets, many=True, context={'request': request})
-    return Response(serializer.data)
+    """
+    Получает список всех наборов параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ с данными наборов параметров.
+    """
+    try:
+        logger.info('Запрос на получение всех наборов параметров')
+        parameter_sets = ParameterSet.objects.all()
+        serializer = ParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+        logger.info('Наборы параметров успешно получены')
+        return Response(serializer.data)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении наборов параметров: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getParameterSet(request, pk):
+#     parameter_set = ParameterSet.objects.get(id=pk)
+#     serializer = ParameterSetSerializer(parameter_set, many=False)
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getParameterSet(request, pk):
-    parameter_set = ParameterSet.objects.get(id=pk)
-    serializer = ParameterSetSerializer(parameter_set, many=False)
-    return Response(serializer.data)
+    """
+    Получает конкретный набор параметров по первичному ключу.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров.
+
+    Returns:
+        Response: JSON-ответ с данными набора параметров.
+    """
+    try:
+        logger.info(f'Запрос на получение набора параметров с id: {pk}')
+        parameter_set = ParameterSet.objects.get(id=pk)
+        serializer = ParameterSetSerializer(parameter_set, many=False)
+        logger.info(f'Набор параметров с id: {pk} успешно получен')
+        return Response(serializer.data)
+    except ParameterSet.DoesNotExist:
+        logger.error(f'Набор параметров с id: {pk} не найден')
+        return Response({'error': 'ParameterSet not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении набора параметров с id: {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createParameterSet(request):
+#     # print(request.data)
+#     # Преобразовать время в формат 'HH:MM:SS'
+#     time_str = request.data.get('time')
+#     if time_str:
+#         try:
+#             datetime.strptime(time_str, '%H:%M:%S')
+#         except ValueError:
+#             return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+
+#     data = request.data
+#     if isinstance(data, list):
+#         created_sets = []
+#         for item in data:
+#             serializer = ParameterSetSerializer(data=item)
+#             print(serializer.is_valid())
+#             if serializer.is_valid():
+#                 parameter_set = serializer.save()
+#                 created_sets.append(parameter_set)
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(ParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
+#     else:
+#         serializer = ParameterSetSerializer(data=data)
+#         if serializer.is_valid():
+#             parameter_set = serializer.save()
+#             return Response(ParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createParameterSet(request):
-    # print(request.data)
-    # Преобразовать время в формат 'HH:MM:SS'
-    time_str = request.data.get('time')
-    if time_str:
-        try:
-            datetime.strptime(time_str, '%H:%M:%S')
-        except ValueError:
-            return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Создает новый набор параметров.
 
-    data = request.data
-    if isinstance(data, list):
-        created_sets = []
-        for item in data:
-            serializer = ParameterSetSerializer(data=item)
-            print(serializer.is_valid())
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ с данными созданного набора параметров.
+    """
+    try:
+        logger.info('Запрос на создание нового набора параметров')
+        time_str = request.data.get('time')
+        if time_str:
+            try:
+                datetime.strptime(time_str, '%H:%M:%S')
+            except ValueError:
+                logger.error('Неверный формат времени')
+                return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        if isinstance(data, list):
+            created_sets = []
+            for item in data:
+                serializer = ParameterSetSerializer(data=item)
+                if serializer.is_valid():
+                    parameter_set = serializer.save()
+                    created_sets.append(parameter_set)
+                else:
+                    logger.error('Ошибка валидации данных', extra={'errors': serializer.errors})
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            logger.info('Наборы параметров успешно созданы')
+            return Response(ParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
+        else:
+            serializer = ParameterSetSerializer(data=data)
             if serializer.is_valid():
                 parameter_set = serializer.save()
-                created_sets.append(parameter_set)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(ParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
-    else:
-        serializer = ParameterSetSerializer(data=data)
-        if serializer.is_valid():
-            parameter_set = serializer.save()
-            return Response(ParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                logger.info('Набор параметров успешно создан')
+                return Response(ParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
+            logger.error('Ошибка валидации данных', extra={'errors': serializer.errors})
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при создании набора параметров: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateParameterSet(request, pk):
+#     try:
+#         parameter_set = ParameterSet.objects.get(pk=pk)
+#     except ParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = ParameterSetSerializer(instance=parameter_set, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateParameterSet(request, pk):
+    """
+    Обновляет существующий набор параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров.
+
+    Returns:
+        Response: JSON-ответ с обновленными данными набора параметров.
+    """
     try:
-        parameter_set = ParameterSet.objects.get(pk=pk)
-    except ParameterSet.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        logger.info(f'Запрос на обновление набора параметров с ID {pk}')
+        try:
+            parameter_set = ParameterSet.objects.get(pk=pk)
+        except ParameterSet.DoesNotExist:
+            logger.error(f'Набор параметров с ID {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ParameterSetSerializer(instance=parameter_set, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ParameterSetSerializer(instance=parameter_set, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f'Набор параметров с ID {pk} успешно обновлен')
+            return Response(serializer.data)
+        logger.error('Ошибка валидации данных', extra={'errors': serializer.errors})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при обновлении набора параметров с ID {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteParameterSet(request, pk):
+#     try:
+#         parameter_set = ParameterSet.objects.get(pk=pk)
+#     except ParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     parameter_set.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteParameterSet(request, pk):
+    """
+    Удаляет существующий набор параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров.
+
+    Returns:
+        Response: JSON-ответ, указывающий на успешное или неудачное выполнение операции.
+    """
     try:
-        parameter_set = ParameterSet.objects.get(pk=pk)
-    except ParameterSet.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        logger.info(f'Запрос на удаление набора параметров с ID {pk}')
+        try:
+            parameter_set = ParameterSet.objects.get(pk=pk)
+        except ParameterSet.DoesNotExist:
+            logger.error(f'Набор параметров с ID {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    parameter_set.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+        parameter_set.delete()
+        logger.info(f'Набор параметров с ID {pk} успешно удален')
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при удалении набора параметров с ID {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getExtendedParameterSets(request):
+#     parameter_sets = ExtendedParameterSet.objects.all()
+#     serializer = ExtendedParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getExtendedParameterSets(request):
-    parameter_sets = ExtendedParameterSet.objects.all()
-    serializer = ExtendedParameterSetSerializer(parameter_sets, many=True, context={'request': request})
-    return Response(serializer.data)
+    """
+    Получает список всех наборов расширенных параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий список всех наборов расширенных параметров.
+    """
+    try:
+        logger.info('Запрос на получение всех наборов расширенных параметров')
+        parameter_sets = ExtendedParameterSet.objects.all()
+        serializer = ExtendedParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+        logger.info('Успешно получен список всех наборов расширенных параметров')
+        return Response(serializer.data)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении наборов расширенных параметров: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
