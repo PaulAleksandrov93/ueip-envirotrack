@@ -1270,102 +1270,348 @@ def getExtendedParameterSets(request):
         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getExtendedParameterSet(request, pk):
+#     parameter_set = ExtendedParameterSet.objects.get(id=pk)
+#     serializer = ExtendedParameterSetSerializer(parameter_set, many=False)
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getExtendedParameterSet(request, pk):
-    parameter_set = ExtendedParameterSet.objects.get(id=pk)
-    serializer = ExtendedParameterSetSerializer(parameter_set, many=False)
-    return Response(serializer.data)
+    """
+    Получает конкретный набор расширенных параметров по его первичному ключу.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора расширенных параметров.
+
+    Returns:
+        Response: JSON-ответ, содержащий данные набора расширенных параметров.
+    """
+    try:
+        logger.info(f'Запрос на получение набора расширенных параметров с id: {pk}')
+        parameter_set = ExtendedParameterSet.objects.get(id=pk)
+        serializer = ExtendedParameterSetSerializer(parameter_set, many=False)
+        logger.info(f'Успешно получен набор расширенных параметров с id: {pk}')
+        return Response(serializer.data)
+    except ExtendedParameterSet.DoesNotExist:
+        logger.error(f'Набор расширенных параметров с id: {pk} не найден')
+        return Response({'error': 'Extended Parameter Set not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении набора расширенных параметров с id: {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createExtendedParameterSet(request):
+#     serializer = ExtendedParameterSetSerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createExtendedParameterSet(request):
-    serializer = ExtendedParameterSetSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Создает новый набор расширенных параметров.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ, содержащий данные созданного набора расширенных параметров.
+    """
+    try:
+        logger.info('Запрос на создание нового набора расширенных параметров')
+        serializer = ExtendedParameterSetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info('Новый набор расширенных параметров успешно создан')
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            logger.error(f'Ошибка валидации данных при создании набора расширенных параметров: {serializer.errors}')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при создании набора расширенных параметров: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateExtendedParameterSet(request, pk):
+#     try:
+#         parameter_set = ExtendedParameterSet.objects.get(pk=pk)
+#     except ExtendedParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = ExtendedParameterSetSerializer(instance=parameter_set, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateExtendedParameterSet(request, pk):
+    """
+    Обновляет существующий набор расширенных параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ расширенных параметров.
+
+    Returns:
+        Response: JSON-ответ с обновленными данными расширенных параметров.
+    """
     try:
-        parameter_set = ExtendedParameterSet.objects.get(pk=pk)
-    except ExtendedParameterSet.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        logger.info(f'Запрос на обновление набора расширенных параметров с id: {pk}')
+        try:
+            parameter_set = ExtendedParameterSet.objects.get(pk=pk)
+        except ExtendedParameterSet.DoesNotExist:
+            logger.error(f'Набор расширенных параметров с id {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ExtendedParameterSetSerializer(instance=parameter_set, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ExtendedParameterSetSerializer(instance=parameter_set, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f'Набор расширенных параметров с id {pk} успешно обновлен')
+            return Response(serializer.data)
+        else:
+            logger.error(f'Ошибка валидации данных при обновлении набора расширенных параметров с id {pk}: {serializer.errors}')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при обновлении набора расширенных параметров с id {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteExtendedParameterSet(request, pk):
+#     try:
+#         parameter_set = ExtendedParameterSet.objects.get(pk=pk)
+#     except ExtendedParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     parameter_set.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteExtendedParameterSet(request, pk):
+    """
+    Удаляет существующий набор расширенных параметров.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ расширенных параметров.
+
+    Returns:
+        Response: JSON-ответ, указывающий на успешное или неудачное выполнение операции.
+    """
     try:
-        parameter_set = ExtendedParameterSet.objects.get(pk=pk)
-    except ExtendedParameterSet.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        logger.info(f'Запрос на удаление набора расширенных параметров с id: {pk}')
+        try:
+            parameter_set = ExtendedParameterSet.objects.get(pk=pk)
+        except ExtendedParameterSet.DoesNotExist:
+            logger.error(f'Набор расширенных параметров с id {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    parameter_set.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+        parameter_set.delete()
+        logger.info(f'Набор расширенных параметров с id {pk} успешно удален')
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при удалении набора расширенных параметров с id {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getStorageParameterSets(request):
+#     parameter_sets = ParameterSetForStorage.objects.all()
+#     serializer = ParameterSetForStorageSerializer(parameter_sets, many=True, context={'request': request})
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getStorageParameterSets(request):
-    parameter_sets = ParameterSetForStorage.objects.all()
-    serializer = ParameterSetForStorageSerializer(parameter_sets, many=True, context={'request': request})
-    return Response(serializer.data)
+    """
+    Получает все наборы параметров для КВХ.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ с наборами параметров для КВХ.
+    """
+    try:
+        logger.info('Запрос на получение всех наборов параметров для КВХ')
+        parameter_sets = ParameterSetForStorage.objects.all()
+        serializer = ParameterSetForStorageSerializer(parameter_sets, many=True, context={'request': request})
+        logger.info('Наборы параметров для КВХ успешно получены')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении наборов параметров для КВХ: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getStorageParameterSet(request, pk):
+#     parameter_set = ParameterSetForStorage.objects.get(id=pk)
+#     serializer = ParameterSetForStorageSerializer(parameter_set, many=False)
+#     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getStorageParameterSet(request, pk):
-    parameter_set = ParameterSetForStorage.objects.get(id=pk)
-    serializer = ParameterSetForStorageSerializer(parameter_set, many=False)
-    return Response(serializer.data)
+    """
+    Получает конкретный набор параметров для КВХ по идентификатору.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров для КВХ.
+
+    Returns:
+        Response: JSON-ответ с набором параметров для КВХ.
+    """
+    try:
+        logger.info(f'Запрос на получение набора параметров для КВХ с id={pk}')
+        parameter_set = ParameterSetForStorage.objects.get(id=pk)
+        serializer = ParameterSetForStorageSerializer(parameter_set, many=False)
+        logger.info(f'Набор параметров для КВХ с id={pk} успешно получен')
+        return Response(serializer.data)
+    except ParameterSetForStorage.DoesNotExist:
+        logger.error(f'Набор параметров для КВХ с id={pk} не найден')
+        return Response({'error': 'Набор параметров для КВХ не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при получении набора параметров для КВХ с id={pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createStorageParameterSet(request):
+#     serializer = ParameterSetForStorageSerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createStorageParameterSet(request):
-    serializer = ParameterSetForStorageSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Создает новый набор параметров для КВХ.
 
+    Args:
+        request (Request): Объект HTTP-запроса.
+
+    Returns:
+        Response: JSON-ответ с созданным набором параметров для КВХ или ошибками валидации.
+    """
+    try:
+        logger.info('Запрос на создание нового набора параметров для КВХ')
+        serializer = ParameterSetForStorageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info('Набор параметров для КВХ успешно создан')
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        logger.warning(f'Ошибки валидации при создании набора параметров для КВХ: {serializer.errors}')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при создании набора параметров для КВХ: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateStorageParameterSet(request, pk):
+#     try:
+#         parameter_set = ParameterSetForStorage.objects.get(pk=pk)
+#     except ParameterSetForStorage.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = ParameterSetForStorageSerializer(instance=parameter_set, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateStorageParameterSet(request, pk):
+    """
+    Обновляет существующий набор параметров для КВХ.
+
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров для КВХ.
+
+    Returns:
+        Response: JSON-ответ с обновленным набором параметров для хранения или ошибками валидации.
+    """
     try:
-        parameter_set = ParameterSetForStorage.objects.get(pk=pk)
-    except ParameterSetForStorage.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        logger.info(f'Запрос на обновление набора параметров для КВХ с ID {pk}')
+        try:
+            parameter_set = ParameterSetForStorage.objects.get(pk=pk)
+        except ParameterSetForStorage.DoesNotExist:
+            logger.warning(f'Набор параметров для КВХ с ID {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ParameterSetForStorageSerializer(instance=parameter_set, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ParameterSetForStorageSerializer(instance=parameter_set, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f'Набор параметров для КВХ с ID {pk} успешно обновлен')
+            return Response(serializer.data)
+        logger.warning(f'Ошибки валидации при обновлении набора параметров для КВХ с ID {pk}: {serializer.errors}')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при обновлении набора параметров для КВХ с ID {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteStorageParameterSet(request, pk):
+#     try:
+#         parameter_set = ParameterSetForStorage.objects.get(pk=pk)
+#     except ParameterSetForStorage.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     parameter_set.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteStorageParameterSet(request, pk):
-    try:
-        parameter_set = ParameterSetForStorage.objects.get(pk=pk)
-    except ParameterSetForStorage.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    """
+    Удаляет существующий набор параметров для КВХ.
 
-    parameter_set.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    Args:
+        request (Request): Объект HTTP-запроса.
+        pk (int): Первичный ключ набора параметров для КВХ.
+
+    Returns:
+        Response: JSON-ответ, указывающий на успешное или неудачное выполнение операции.
+    """
+    try:
+        logger.info(f'Запрос на удаление набора параметров для КВХ с ID {pk}')
+        try:
+            parameter_set = ParameterSetForStorage.objects.get(pk=pk)
+        except ParameterSetForStorage.DoesNotExist:
+            logger.warning(f'Набор параметров для КВХ с ID {pk} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        parameter_set.delete()
+        logger.info(f'Набор параметров для КВХ с ID {pk} успешно удален')
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        logger.error(f'Произошла ошибка при удалении набора параметров для КВХ с ID {pk}: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Выгрузка в Excel данных о параметрах для помещений
 
@@ -1522,12 +1768,25 @@ def export_parameters_for_buildings_to_excel(request):
         logger.error(f"Error exporting parameters: {str(e)}")
         return HttpResponseServerError("Internal Server Error")
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getBuildingParameterSets(request):
+#     parameter_sets = BuildingParameterSet.objects.all()
+#     serializer = BuildingParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getBuildingParameterSets(request):
-    parameter_sets = BuildingParameterSet.objects.all()
-    serializer = BuildingParameterSetSerializer(parameter_sets, many=True, context={'request': request})
-    return Response(serializer.data)
+    try:
+        logger.info(f"Пользователь {request.user.username} запросил все наборы параметров зданий")
+        parameter_sets = BuildingParameterSet.objects.all()
+        serializer = BuildingParameterSetSerializer(parameter_sets, many=True, context={'request': request})
+        logger.info(f"Успешно получены и сериализованы {len(parameter_sets)} наборы параметров зданий")
+        return Response(serializer.data)
+    except Exception as e:
+        logger.error(f"Ошибка при получении наборов параметров зданий: {str(e)}")
+        return Response({"detail": "Внутренняя ошибка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
