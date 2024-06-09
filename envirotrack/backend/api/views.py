@@ -1789,137 +1789,370 @@ def getBuildingParameterSets(request):
         return Response({"detail": "Внутренняя ошибка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getBuildingParameterSet(request, pk):
+#     parameter_set = BuildingParameterSet.objects.get(id=pk)
+#     serializer = BuildingParameterSetSerializer(parameter_set, many=False)
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getBuildingParameterSet(request, pk):
-    parameter_set = BuildingParameterSet.objects.get(id=pk)
-    serializer = BuildingParameterSetSerializer(parameter_set, many=False)
-    return Response(serializer.data)
+    try:
+        logger.info(f"Пользователь {request.user.username} запросил набор параметров здания с id: {pk}")
+        parameter_set = BuildingParameterSet.objects.get(id=pk)
+        serializer = BuildingParameterSetSerializer(parameter_set, many=False)
+        logger.info(f"Успешно получен и сериализован набор параметров здания с id: {pk}")
+        return Response(serializer.data)
+    except BuildingParameterSet.DoesNotExist:
+        logger.warning(f"Набор параметров здания с id: {pk} не найден")
+        return Response({"detail": "Набор параметров не найден"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Ошибка при получении набора параметров здания с id: {pk}: {str(e)}")
+        return Response({"detail": "Внутренняя ошибка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createBuildingParameterSet(request):
+#     print(request.data)
+#     # Преобразовать время в формат 'HH:MM:SS'
+#     time_str = request.data.get('time')
+#     if time_str:
+#         try:
+#             datetime.strptime(time_str, '%H:%M:%S')
+#         except ValueError:
+#             return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+
+#     data = request.data
+#     if isinstance(data, list):
+#         created_sets = []
+#         for item in data:
+#             serializer = BuildingParameterSetSerializer(data=item)
+#             print(serializer.is_valid())
+#             if serializer.is_valid():
+#                 parameter_set = serializer.save()
+#                 created_sets.append(parameter_set)
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(BuildingParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
+#     else:
+#         serializer = BuildingParameterSetSerializer(data=data)
+#         if serializer.is_valid():
+#             parameter_set = serializer.save()
+#             return Response(BuildingParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createBuildingParameterSet(request):
-    print(request.data)
-    # Преобразовать время в формат 'HH:MM:SS'
-    time_str = request.data.get('time')
-    if time_str:
-        try:
-            datetime.strptime(time_str, '%H:%M:%S')
-        except ValueError:
-            return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        logger.info(f"Пользователь {request.user.username} пытается создать новый набор параметров здания")
+        logger.debug(f"Данные запроса: {request.data}")
 
-    data = request.data
-    if isinstance(data, list):
-        created_sets = []
-        for item in data:
-            serializer = BuildingParameterSetSerializer(data=item)
-            print(serializer.is_valid())
+        # Преобразовать время в формат 'HH:MM:SS'
+        time_str = request.data.get('time')
+        if time_str:
+            try:
+                datetime.strptime(time_str, '%H:%M:%S')
+            except ValueError:
+                logger.warning(f"Некорректный формат времени: {time_str}")
+                return Response({'error': 'Invalid time format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        if isinstance(data, list):
+            created_sets = []
+            for item in data:
+                serializer = BuildingParameterSetSerializer(data=item)
+                if serializer.is_valid():
+                    parameter_set = serializer.save()
+                    created_sets.append(parameter_set)
+                    logger.info(f"Успешно создан набор параметров здания с id: {parameter_set.id}")
+                else:
+                    logger.warning(f"Ошибка валидации данных: {serializer.errors}")
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(BuildingParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
+        else:
+            serializer = BuildingParameterSetSerializer(data=data)
             if serializer.is_valid():
                 parameter_set = serializer.save()
-                created_sets.append(parameter_set)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(BuildingParameterSetSerializer(created_sets, many=True).data, status=status.HTTP_201_CREATED)
-    else:
-        serializer = BuildingParameterSetSerializer(data=data)
-        if serializer.is_valid():
-            parameter_set = serializer.save()
-            return Response(BuildingParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                logger.info(f"Успешно создан набор параметров здания с id: {parameter_set.id}")
+                return Response(BuildingParameterSetSerializer(parameter_set).data, status=status.HTTP_201_CREATED)
+            logger.warning(f"Ошибка валидации данных: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"Ошибка при создании набора параметров здания: {str(e)}")
+        return Response({'detail': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateBuildingParameterSet(request, pk):
+#     try:
+#         parameter_set = BuildingParameterSet.objects.get(pk=pk)
+#     except BuildingParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = BuildingParameterSetSerializer(instance=parameter_set, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateBuildingParameterSet(request, pk):
     try:
+        logger.info(f"Пользователь {request.user.username} пытается обновить набор параметров здания с id: {pk}")
         parameter_set = BuildingParameterSet.objects.get(pk=pk)
     except BuildingParameterSet.DoesNotExist:
+        logger.warning(f"Набор параметров здания с id {pk} не найден")
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     serializer = BuildingParameterSetSerializer(instance=parameter_set, data=request.data)
     if serializer.is_valid():
         serializer.save()
+        logger.info(f"Набор параметров здания с id {pk} успешно обновлен")
         return Response(serializer.data)
+    
+    logger.warning(f"Ошибка валидации данных при обновлении набора параметров здания с id {pk}: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteBuildingParameterSet(request, pk):
+#     try:
+#         parameter_set = BuildingParameterSet.objects.get(pk=pk)
+#     except BuildingParameterSet.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     parameter_set.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteBuildingParameterSet(request, pk):
     try:
+        logger.info(f"Пользователь {request.user.username} пытается удалить набор параметров здания с id: {pk}")
         parameter_set = BuildingParameterSet.objects.get(pk=pk)
     except BuildingParameterSet.DoesNotExist:
+        logger.warning(f"Набор параметров здания с id {pk} не найден")
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     parameter_set.delete()
+    logger.info(f"Набор параметров здания с id {pk} успешно удален")
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getBuildingEnvironmentalParameters(request):
+#     try:
+#         user = request.user
+#         responsible = request.query_params.get('responsible')
+#         building = request.query_params.get('building')
+#         date = request.query_params.get('date')
+
+#         parameters = BuildingEnviromentalParameters.objects.all().prefetch_related('building', 'responsible')
+
+#         if responsible:
+#             parameters = parameters.filter(responsible=responsible)
+#         if building:
+#             parameters = parameters.filter(building=building)
+#         if date:
+#             created_start = datetime.strptime(date, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
+#             created_end = created_start + timedelta(days=1)
+#             parameters = parameters.filter(created_at__range=(created_start, created_end))
+
+#         parameters = parameters.order_by('-created_at')  # Добавляем сортировку по дате создания записи
+
+#         serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True, context={'request': request})
+#         return Response(serializer.data)
+
+#     except Exception as e:
+#         logger.error(f'Произошла ошибка во время выполнения getEnviromentalParameters: {e}', exc_info=True)
+#         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getBuildingEnvironmentalParameters(request):
     try:
         user = request.user
+        logger.info(f"Запрос от пользователя: {user.username}")
+
         responsible = request.query_params.get('responsible')
         building = request.query_params.get('building')
         date = request.query_params.get('date')
+
+        logger.info(f"Фильтры запроса - responsible: {responsible}, building: {building}, date: {date}")
 
         parameters = BuildingEnviromentalParameters.objects.all().prefetch_related('building', 'responsible')
 
         if responsible:
             parameters = parameters.filter(responsible=responsible)
+            logger.info(f"Фильтрация по ответственному: {responsible}")
         if building:
             parameters = parameters.filter(building=building)
+            logger.info(f"Фильтрация по зданию: {building}")
         if date:
             created_start = datetime.strptime(date, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
             created_end = created_start + timedelta(days=1)
             parameters = parameters.filter(created_at__range=(created_start, created_end))
+            logger.info(f"Фильтрация по дате: {created_start} - {created_end}")
 
         parameters = parameters.order_by('-created_at')  # Добавляем сортировку по дате создания записи
+        logger.info("Параметры отсортированы по дате создания")
 
         serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True, context={'request': request})
         return Response(serializer.data)
 
     except Exception as e:
-        logger.error(f'Произошла ошибка во время выполнения getEnviromentalParameters: {e}', exc_info=True)
+        logger.error(f'Произошла ошибка во время выполнения getBuildingEnvironmentalParameters: {e}', exc_info=True)
         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def getBuildingEnvironmentalParameter(request, pk):
+#     parameters = BuildingEnviromentalParameters.objects.get(id=pk)
+#     serializer = BuildingEnvironmentalParametersSerializer(parameters, many=False)
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getBuildingEnvironmentalParameter(request, pk):
-    parameters = BuildingEnviromentalParameters.objects.get(id=pk)
-    serializer = BuildingEnvironmentalParametersSerializer(parameters, many=False)
-    return Response(serializer.data)
+    try:
+        user = request.user
+        logger.info(f"Запрос от пользователя: {user.username} для получения параметра окружающей среды здания с ID: {pk}")
 
+        parameters = BuildingEnviromentalParameters.objects.get(id=pk)
+        logger.info(f"Найден параметр окружающей среды здания с ID: {pk}")
+
+        serializer = BuildingEnvironmentalParametersSerializer(parameters, many=False)
+        return Response(serializer.data)
+    
+    except BuildingEnviromentalParameters.DoesNotExist:
+        logger.warning(f"Параметр окружающей среды здания с ID: {pk} не найден")
+        return Response({'error': 'Параметр окружающей среды не найден'}, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        logger.error(f'Произошла ошибка во время выполнения getBuildingEnvironmentalParameter: {e}', exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def createBuildingEnvironmentalParameters(request):
+#     try:
+#         # print("Request Data:", request.data)
+#         building_data = request.data.get('building')
+#         # print("Building Data:", building_data)
+#         building = Building.objects.get(building_number=building_data.get('building_number'))
+#         # print("Building:", building)
+#         created_at = request.data.get('created_at')
+#         existing_parameters = BuildingEnviromentalParameters.objects.filter(building=building, created_at=created_at)
+#         if existing_parameters.exists():
+#             print('Вы уже создавали запись на указанную дату')
+#             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+#         responsible_data = request.data.get('responsible')
+#         # print("Responsible Data:", responsible_data)
+#         responsible, _ = Responsible.objects.get_or_create(
+#             first_name=responsible_data.get('first_name'),
+#             last_name=responsible_data.get('last_name'),
+#             patronymic=responsible_data.get('patronymic')
+#         )
+#         # print("Responsible:", responsible)
+#         measurement_instruments_data = request.data.get('measurement_instruments')
+#         # print("Measurement Instruments Data:", measurement_instruments_data)
+#         measurement_instruments_data = request.data.get('measurement_instruments', [])
+
+#         measurement_instruments = []
+#         for instrument_data in measurement_instruments_data:
+#             instrument_dict = {
+#                 'name': instrument_data.get('name'),  
+#                 'type': instrument_data.get('type'),
+#                 'serial_number': instrument_data.get('serial_number'),
+#                 'calibration_date': instrument_data.get('calibration_date'),
+#                 'calibration_interval': instrument_data.get('calibration_interval')
+#             }
+#             measurement_instruments.append(instrument_dict)
+
+#         # print("Measurement Instruments:", measurement_instruments)
+#         parameter_sets_data = request.data.get('parameter_sets', [])
+#         # print("Parameter Sets Data:", parameter_sets_data)
+#         parameter_set_ids = []
+#         building_data = request.data.get('building')
+#         # print("Building data:", building_data)
+#         building = Building.objects.get(building_number=building_data.get('building_number'))
+#         # print("Building:", building)
+#         # Создать список id существующих параметров, чтобы избежать дублирования
+#         existing_parameter_set_ids = BuildingParameterSet.objects.values_list('id', flat=True)
+#         created_at = request.data.get('created_at')
+#         existing_parameters = BuildingEnviromentalParameters.objects.filter(building=building, created_at=created_at)
+#         if existing_parameters.exists():
+#             print('Вы уже создавали запись на указанную дату')
+#             return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+#         for param_set_data in parameter_sets_data:
+#             parameter_set_id = param_set_data.get('id')
+#             # print(f"Получен parameter_set_id: {parameter_set_id}")
+#             # Проверить, существует ли параметр с таким id
+#             if parameter_set_id in existing_parameter_set_ids:
+#                 parameter_set_ids.append(parameter_set_id)
+#                 # print(f"Найден ParameterSet с id {parameter_set_id}")
+#             else:
+#                 serializer = BuildingParameterSetSerializer(data=param_set_data)
+#                 if serializer.is_valid():
+#                     parameter_set = serializer.save()
+#                     parameter_set_ids.append(parameter_set.id)
+#                 else:
+#                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+#         data = {
+#             'building': building_data,
+#             'responsible': responsible_data,
+#             'measurement_instruments': measurement_instruments,
+#             'parameter_sets': parameter_sets_data,
+#             'created_at': request.data.get('created_at')
+#         }
+#         # print("Data:", data)
+#         serializer = BuildingEnvironmentalParametersSerializer(data=data, context={'request': request})
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             print("Serializer Errors:", serializer.errors)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     except Room.DoesNotExist:
+#         print("Room not found")
+#         return Response({'error': 'Room not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createBuildingEnvironmentalParameters(request):
     try:
-        # print("Request Data:", request.data)
+        user = request.user
+        logger.info(f"Запрос на создание параметров окружающей среды здания от пользователя: {user.username}")
+
         building_data = request.data.get('building')
-        # print("Building Data:", building_data)
         building = Building.objects.get(building_number=building_data.get('building_number'))
-        # print("Building:", building)
         created_at = request.data.get('created_at')
         existing_parameters = BuildingEnviromentalParameters.objects.filter(building=building, created_at=created_at)
+        
         if existing_parameters.exists():
-            print('Вы уже создавали запись на указанную дату')
-            return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            logger.warning('Запись для этого здания и даты уже существует')
+            return Response({'error': 'An entry for this building and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
         responsible_data = request.data.get('responsible')
-        # print("Responsible Data:", responsible_data)
         responsible, _ = Responsible.objects.get_or_create(
             first_name=responsible_data.get('first_name'),
             last_name=responsible_data.get('last_name'),
             patronymic=responsible_data.get('patronymic')
         )
-        # print("Responsible:", responsible)
-        measurement_instruments_data = request.data.get('measurement_instruments')
-        # print("Measurement Instruments Data:", measurement_instruments_data)
-        measurement_instruments_data = request.data.get('measurement_instruments', [])
 
+        measurement_instruments_data = request.data.get('measurement_instruments', [])
         measurement_instruments = []
         for instrument_data in measurement_instruments_data:
             instrument_dict = {
@@ -1931,34 +2164,23 @@ def createBuildingEnvironmentalParameters(request):
             }
             measurement_instruments.append(instrument_dict)
 
-        # print("Measurement Instruments:", measurement_instruments)
         parameter_sets_data = request.data.get('parameter_sets', [])
-        # print("Parameter Sets Data:", parameter_sets_data)
         parameter_set_ids = []
-        building_data = request.data.get('building')
-        # print("Building data:", building_data)
-        building = Building.objects.get(building_number=building_data.get('building_number'))
-        # print("Building:", building)
-        # Создать список id существующих параметров, чтобы избежать дублирования
+
         existing_parameter_set_ids = BuildingParameterSet.objects.values_list('id', flat=True)
-        created_at = request.data.get('created_at')
-        existing_parameters = BuildingEnviromentalParameters.objects.filter(building=building, created_at=created_at)
-        if existing_parameters.exists():
-            print('Вы уже создавали запись на указанную дату')
-            return Response({'error': 'An entry for this room and date already exists'}, status=status.HTTP_400_BAD_REQUEST)
         for param_set_data in parameter_sets_data:
             parameter_set_id = param_set_data.get('id')
-            # print(f"Получен parameter_set_id: {parameter_set_id}")
-            # Проверить, существует ли параметр с таким id
             if parameter_set_id in existing_parameter_set_ids:
                 parameter_set_ids.append(parameter_set_id)
-                # print(f"Найден ParameterSet с id {parameter_set_id}")
+                logger.info(f"Найден ParameterSet с id {parameter_set_id}")
             else:
                 serializer = BuildingParameterSetSerializer(data=param_set_data)
                 if serializer.is_valid():
                     parameter_set = serializer.save()
                     parameter_set_ids.append(parameter_set.id)
+                    logger.info(f"Создан новый ParameterSet с id {parameter_set.id}")
                 else:
+                    logger.error(f"Ошибки в данных ParameterSet: {serializer.errors}")
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         data = {
@@ -1968,98 +2190,226 @@ def createBuildingEnvironmentalParameters(request):
             'parameter_sets': parameter_sets_data,
             'created_at': request.data.get('created_at')
         }
-        # print("Data:", data)
+
         serializer = BuildingEnvironmentalParametersSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            logger.info("Параметры окружающей среды здания успешно созданы")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print("Serializer Errors:", serializer.errors)
+            logger.error(f"Ошибки в данных BuildingEnvironmentalParameters: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    except Room.DoesNotExist:
-        print("Room not found")
-        return Response({'error': 'Room not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except Building.DoesNotExist:
+        logger.error("Здание не найдено")
+        return Response({'error': 'Building not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Произошла ошибка во время выполнения createBuildingEnvironmentalParameters: {e}", exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateBuildingEnvironmentalParameters(request, pk):   
+#     try:
+#         environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
+#     except BuildingEnviromentalParameters.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     serializer = BuildingEnvironmentalParametersSerializer(instance=environmental_params, data=request.data, context={'request': request})
+#     environmental_params.parameter_sets.all().delete()
+#     if serializer.is_valid():
+#         building_data = request.data.get('building')
+#         parameter_sets_data = request.data.get('parameter_sets', [])
+#         measurement_instrument_data = request.data.get('measurement_instrument')
+#         measurement_instruments_data = request.data.get('measurement_instruments', [])  # Получаем список средств измерения
+#         modified_by_data = request.data.get('modified_by')
+#         user_id = modified_by_data.get('user')
+
+#         building, created = Building.objects.get_or_create(building_number=building_data.get('building_number')) if building_data else (None, False)
+
+#         parameter_sets = []
+#         for param_set_data in parameter_sets_data:
+#             parameter_set = BuildingParameterSet.objects.create(**param_set_data)
+#             parameter_sets.append(parameter_set)
+
+#         measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
+#         measurement_instruments = []
+        
+#         if measurement_instruments_data:
+#             for instrument_data in measurement_instruments_data:
+#                 measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
+#                 measurement_instruments.append(measurement_instrument_instance)
+
+#         environmental_params.building = building
+#         created_at = request.data.get('created_at')
+#         if created_at:
+#             environmental_params.created_at = created_at
+
+#         environmental_params.parameter_sets.set(parameter_sets)
+#         environmental_params.measurement_instruments.set(measurement_instruments)
+
+#         try:
+#             modified_by_user = User.objects.get(id=user_id)
+#             environmental_params.modified_by = modified_by_user
+#         except User.DoesNotExist:
+#             print(f'Пользователь с id {user_id} не существует.')
+
+#         environmental_params.save()
+
+#         return Response(serializer.data)
+
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def updateBuildingEnvironmentalParameters(request, pk):   
+def updateBuildingEnvironmentalParameters(request, pk):
     try:
-        environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
-    except BuildingEnviromentalParameters.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    serializer = BuildingEnvironmentalParametersSerializer(instance=environmental_params, data=request.data, context={'request': request})
-    environmental_params.parameter_sets.all().delete()
-    if serializer.is_valid():
-        building_data = request.data.get('building')
-        parameter_sets_data = request.data.get('parameter_sets', [])
-        measurement_instrument_data = request.data.get('measurement_instrument')
-        measurement_instruments_data = request.data.get('measurement_instruments', [])  # Получаем список средств измерения
-        modified_by_data = request.data.get('modified_by')
-        user_id = modified_by_data.get('user')
-
-        building, created = Building.objects.get_or_create(building_number=building_data.get('building_number')) if building_data else (None, False)
-
-        parameter_sets = []
-        for param_set_data in parameter_sets_data:
-            parameter_set = BuildingParameterSet.objects.create(**param_set_data)
-            parameter_sets.append(parameter_set)
-
-        measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
-        measurement_instruments = []
-        
-        if measurement_instruments_data:
-            for instrument_data in measurement_instruments_data:
-                measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
-                measurement_instruments.append(measurement_instrument_instance)
-
-        environmental_params.building = building
-        created_at = request.data.get('created_at')
-        if created_at:
-            environmental_params.created_at = created_at
-
-        environmental_params.parameter_sets.set(parameter_sets)
-        environmental_params.measurement_instruments.set(measurement_instruments)
+        user = request.user
+        logger.info(f"Запрос на обновление параметров окружающей среды здания от пользователя: {user.username}, id параметров: {pk}")
 
         try:
-            modified_by_user = User.objects.get(id=user_id)
-            environmental_params.modified_by = modified_by_user
-        except User.DoesNotExist:
-            print(f'Пользователь с id {user_id} не существует.')
+            environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
+        except BuildingEnviromentalParameters.DoesNotExist:
+            logger.warning(f"Параметры окружающей среды здания с id {pk} не найдены")
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-        environmental_params.save()
+        serializer = BuildingEnvironmentalParametersSerializer(instance=environmental_params, data=request.data, context={'request': request})
+        environmental_params.parameter_sets.all().delete()
+        
+        if serializer.is_valid():
+            building_data = request.data.get('building')
+            parameter_sets_data = request.data.get('parameter_sets', [])
+            measurement_instrument_data = request.data.get('measurement_instrument')
+            measurement_instruments_data = request.data.get('measurement_instruments', [])
+            modified_by_data = request.data.get('modified_by')
+            user_id = modified_by_data.get('user')
 
-        return Response(serializer.data)
+            building, created = Building.objects.get_or_create(building_number=building_data.get('building_number')) if building_data else (None, False)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            parameter_sets = []
+            for param_set_data in parameter_sets_data:
+                parameter_set = BuildingParameterSet.objects.create(**param_set_data)
+                parameter_sets.append(parameter_set)
+                logger.info(f"Создан новый параметр набора с id {parameter_set.id}")
 
+            measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**measurement_instrument_data) if measurement_instrument_data else (None, False)
+            measurement_instruments = []
+            if measurement_instruments_data:
+                for instrument_data in measurement_instruments_data:
+                    measurement_instrument_instance, _ = MeasurementInstrument.objects.get_or_create(**instrument_data)
+                    measurement_instruments.append(measurement_instrument_instance)
+
+            environmental_params.building = building
+            created_at = request.data.get('created_at')
+            if created_at:
+                environmental_params.created_at = created_at
+
+            environmental_params.parameter_sets.set(parameter_sets)
+            environmental_params.measurement_instruments.set(measurement_instruments)
+
+            try:
+                modified_by_user = User.objects.get(id=user_id)
+                environmental_params.modified_by = modified_by_user
+                logger.info(f"Параметры изменены пользователем: {modified_by_user.username}")
+            except User.DoesNotExist:
+                logger.warning(f'Пользователь с id {user_id} не существует.')
+
+            environmental_params.save()
+            logger.info(f"Параметры окружающей среды здания с id {pk} успешно обновлены")
+            return Response(serializer.data)
+
+        logger.error(f"Ошибки в данных обновления параметров окружающей среды: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Произошла ошибка во время обновления параметров окружающей среды здания: {e}", exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['DELETE'])
+# @permission_classes([IsAuthenticated])
+# def deleteBuildingEnvironmentalParameters(request, pk):
+#     try:
+#         environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
+#     except BuildingEnviromentalParameters.DoesNotExist:
+#         return Response(status=status.HTTP_404_NOT_FOUND)
+
+#     environmental_params.delete()
+#     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def deleteBuildingEnvironmentalParameters(request, pk):
     try:
-        environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
-    except BuildingEnviromentalParameters.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        user = request.user
+        logger.info(f"Запрос на удаление параметров окружающей среды здания от пользователя: {user.username}, id параметров: {pk}")
 
-    environmental_params.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            environmental_params = BuildingEnviromentalParameters.objects.get(pk=pk)
+        except BuildingEnviromentalParameters.DoesNotExist:
+            logger.warning(f"Параметры окружающей среды здания с id {pk} не найдены")
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
+        environmental_params.delete()
+        logger.info(f"Параметры окружающей среды здания с id {pk} успешно удалены")
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-# Фильтрация по помещениям
+    except Exception as e:
+        logger.error(f"Произошла ошибка во время удаления параметров окружающей среды здания: {e}", exc_info=True)
+        return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# # Фильтрация по помещениям
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def filterEnvironmentalParameters(request):
+#     try:
+#         responsible_id = request.query_params.get('responsible')
+#         room_number = request.query_params.get('room')
+#         date = request.query_params.get('date')
+#         start_date = request.query_params.get('start_date')
+#         end_date = request.query_params.get('end_date')
+
+#         print("Room number from request:", room_number)  
+
+#         parameters = EnviromentalParameters.objects.all()
+
+#         if responsible_id:
+#             parameters = parameters.filter(responsible__id=responsible_id)
+
+#         if room_number:
+#             parameters = parameters.filter(room__room_number=room_number)
+
+#         if date:
+#             parameters = parameters.filter(created_at=date)
+
+#         if start_date and end_date:
+#             parameters = parameters.filter(created_at__range=[start_date, end_date])
+        
+#         parameters = parameters.order_by('-created_at')
+
+#         serializer = EnvironmentalParametersSerializer(parameters, many=True)
+#         return Response(serializer.data)
+
+#     except Exception as e:
+#         print("Error filtering parameters:", str(e))
+#         return Response({'error': 'An error occurred while filtering parameters'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterEnvironmentalParameters(request):
     try:
+        user = request.user
+        logger.info(f"Запрос на фильтрацию параметров окружающей среды от пользователя: {user.username}")
+
         responsible_id = request.query_params.get('responsible')
         room_number = request.query_params.get('room')
         date = request.query_params.get('date')
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
 
-        print("Room number from request:", room_number)  
+        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, room_number={room_number}, date={date}, start_date={start_date}, end_date={end_date}")
 
         parameters = EnviromentalParameters.objects.all()
 
@@ -2074,30 +2424,69 @@ def filterEnvironmentalParameters(request):
 
         if start_date and end_date:
             parameters = parameters.filter(created_at__range=[start_date, end_date])
-        
+
         parameters = parameters.order_by('-created_at')
 
         serializer = EnvironmentalParametersSerializer(parameters, many=True)
+        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
         return Response(serializer.data)
 
     except Exception as e:
-        print("Error filtering parameters:", str(e))
-        return Response({'error': 'An error occurred while filtering parameters'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Произошла ошибка при фильтрации параметров: {e}", exc_info=True)
+        return Response({'error': 'Произошла ошибка при фильтрации параметров'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
-# Фильтрация по зданиям
+# # Фильтрация по зданиям
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def filterBuildingEnvironmentalParameters(request):
+#     try:
+#         responsible_id = request.query_params.get('responsible')
+#         building_number = request.query_params.get('building')
+#         date = request.query_params.get('date')
+#         start_date = request.query_params.get('start_date')
+#         end_date = request.query_params.get('end_date')
+#         print("responsible_id from request:", responsible_id) 
+
+#         print("Building number from request:", building_number)  
+
+#         parameters = BuildingEnviromentalParameters.objects.all()
+
+#         if responsible_id:
+#             parameters = parameters.filter(responsible__id=responsible_id)
+
+#         if building_number:
+#             parameters = parameters.filter(building__building_number=building_number) 
+
+#         if date:
+#             parameters = parameters.filter(created_at=date)
+
+#         if start_date and end_date:
+#             parameters = parameters.filter(created_at__range=[start_date, end_date])
+        
+#         parameters = parameters.order_by('-created_at')
+
+#         serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True)
+#         return Response(serializer.data)
+
+#     except Exception as e:
+#         print("Error filtering parameters:", str(e))
+#         return Response({'error': 'An error occurred while filtering parameters'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterBuildingEnvironmentalParameters(request):
     try:
+        user = request.user
+        logger.info(f"Запрос на фильтрацию параметров окружающей среды для зданий от пользователя: {user.username}")
+
         responsible_id = request.query_params.get('responsible')
         building_number = request.query_params.get('building')
         date = request.query_params.get('date')
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        print("responsible_id from request:", responsible_id) 
 
-        print("Building number from request:", building_number)  
+        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, building_number={building_number}, date={date}, start_date={start_date}, end_date={end_date}")
 
         parameters = BuildingEnviromentalParameters.objects.all()
 
@@ -2105,19 +2494,20 @@ def filterBuildingEnvironmentalParameters(request):
             parameters = parameters.filter(responsible__id=responsible_id)
 
         if building_number:
-            parameters = parameters.filter(building__building_number=building_number) 
+            parameters = parameters.filter(building__building_number=building_number)
 
         if date:
             parameters = parameters.filter(created_at=date)
 
         if start_date and end_date:
             parameters = parameters.filter(created_at__range=[start_date, end_date])
-        
+
         parameters = parameters.order_by('-created_at')
 
         serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True)
+        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
         return Response(serializer.data)
 
     except Exception as e:
-        print("Error filtering parameters:", str(e))
-        return Response({'error': 'An error occurred while filtering parameters'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Произошла ошибка при фильтрации параметров: {e}", exc_info=True)
+        return Response({'error': 'Произошла ошибка при фильтрации параметров'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
