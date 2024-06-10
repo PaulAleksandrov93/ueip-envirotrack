@@ -260,7 +260,7 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
     'backup-db-everyday': {
-        'task': 'your_app.tasks.backup_db', 
+        'task': 'envirotrack.tasks.backup_db', 
         'schedule': crontab(hour=0, minute=0),  
     },
 }
