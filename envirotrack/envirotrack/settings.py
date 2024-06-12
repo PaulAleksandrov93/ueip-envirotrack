@@ -255,12 +255,12 @@ LOGGING = {
     },
 }
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
-    'backup-db-everyday': {
-        'task': 'envirotrack.tasks.backup_db', 
-        'schedule': crontab(hour=0, minute=0),  
+    'backup-db-every-6-hours': {
+        'task': 'envirotrack.tasks.backup_db',
+        'schedule': crontab(minute=0, hour='*/6'),
     },
 }
