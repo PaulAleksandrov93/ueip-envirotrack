@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './MeasuringInstrumentsForm.css';
 import AuthContext from '../context/AuthContext';
-import ErrorMessageModal from './ErrorMessageModal';
+
 
 const MeasuringInstrumentForm = ({ instrumentId, onCloseForm }) => {
   const { authTokens } = useContext(AuthContext);

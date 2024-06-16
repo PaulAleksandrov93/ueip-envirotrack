@@ -8,9 +8,9 @@ import './MeasuringInstrumentsList.css';
 
 const MeasuringInstrumentsList = () => {
   const { authTokens } = useContext(AuthContext);
-  const [activeComponent, setActiveComponent] = useState('measuringInstruments');
+  const [setActiveComponent] = useState('measuringInstruments');
   const [measuringInstruments, setMeasuringInstruments] = useState([]);
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams] = useState({
     registration_number: '',
     name: '',
     serial_number: '',
@@ -52,29 +52,6 @@ const MeasuringInstrumentsList = () => {
   const handleCloseForm = () => {
     setEditingMeasuringInstrumentId(null);
     setIsCreating(false); 
-    fetchMeasuringInstruments();
-  };
-
-  const handleSearchChange = (e) => {
-    const { name, value } = e.target;
-    setSearchParams({
-      ...searchParams,
-      [name]: value,
-    });
-  };
-
-  const handleApplySearch = () => {
-    fetchMeasuringInstruments();
-  };
-
-  const handleClearSearch = () => {
-    setSearchParams({
-      registration_number: '',
-      name: '',
-      serial_number: '',
-      metrological_characteristics: '',
-      calibration_date: '',
-    });
     fetchMeasuringInstruments();
   };
 

@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'backend.apps.BackendConfig',
+    # 'backend.apps.BackendConfig',
+    'backend',
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
@@ -259,8 +260,9 @@ CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
-    'backup-db-every-6-hours': {
-        'task': 'envirotrack.tasks.backup_db',
-        'schedule': crontab(minute=0, hour='*/6'),
+    'backup-db-every-30-minutes': {
+        'task': 'backend.tasks.backup_db',
+        # 'schedule': crontab(minute=0, hour='*/6'),
+        'schedule': crontab(minute='*/30'),
     },
 }

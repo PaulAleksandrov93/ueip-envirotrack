@@ -7,6 +7,7 @@ from django.conf import settings
 
 @shared_task
 def backup_db():
+    print('Running backup_db task')  # Добавьте этот вывод для отладки
     db_name = settings.DATABASES['default']['NAME']
     db_user = settings.DATABASES['default']['USER']
     db_password = settings.DATABASES['default']['PASSWORD']
