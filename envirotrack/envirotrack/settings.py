@@ -262,7 +262,7 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_BEAT_SCHEDULE = {
     'backup-db-every-30-minutes': {
         'task': 'backend.tasks.backup_db',
-        # 'schedule': crontab(minute=0, hour='*/6'),
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute=0, hour='*/6'),
+        # 'schedule': crontab(minute='*/30'),
     },
 }
