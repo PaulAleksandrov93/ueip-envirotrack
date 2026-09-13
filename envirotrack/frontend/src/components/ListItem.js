@@ -4,6 +4,12 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 
+const formatHumidity = (value) => {
+  if (value === null || value === undefined || value === '') return value;
+  const num = parseFloat(value);
+  return Number.isNaN(num) ? value : num.toFixed(1);
+};
+
 const renderParameterSets = ({ parameterSets, extendedParameterSets, storageParameterSets, room }) => {
   if (!parameterSets && !extendedParameterSets && !storageParameterSets) return '-';
 
@@ -80,14 +86,14 @@ const renderParameterSets = ({ parameterSets, extendedParameterSets, storagePara
           {isStorage && (
             <>
               <span className={temperatureClassName}> Температура (°C): {temperature_celsius},</span>
-              <span className={humidityClassName}> Влажность (%): {humidity_percentage},</span>
+              <span className={humidityClassName}> Влажность (%): {formatHumidity(humidity_percentage)},</span>
               <span> Время создания: {time}</span>
             </>
           )}
           {isExtended && (
             <>
               <span className={temperatureClassName}> Температура (°C): {temperature_celsius},</span>
-              <span className={humidityClassName}> Влажность (%): {humidity_percentage},</span>
+              <span className={humidityClassName}> Влажность (%): {formatHumidity(humidity_percentage)},</span>
               {pressure_kpa !== undefined && (
                 <span className={pressureClassName}> Давление (кПа): {pressure_kpa},</span>
               )}
@@ -103,7 +109,7 @@ const renderParameterSets = ({ parameterSets, extendedParameterSets, storagePara
           {!isStorage && !isExtended && (
             <>
               <span className={temperatureClassName}> Температура (°C): {temperature_celsius},</span>
-              <span className={humidityClassName}> Влажность (%): {humidity_percentage},</span>
+              <span className={humidityClassName}> Влажность (%): {formatHumidity(humidity_percentage)},</span>
               {pressure_kpa !== undefined && (
                 <span className={pressureClassName}> Давление (кПа): {pressure_kpa},</span>
               )}

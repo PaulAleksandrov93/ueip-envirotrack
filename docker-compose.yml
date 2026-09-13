@@ -1,145 +1,25 @@
-# version: '3.8'
-
-# services:
-#   web-app:
-#     build: 
-#       context: .
-#       dockerfile: Dockerfile
-#     ports:
-#       - "8000:8000"
-#     volumes:
-#       - ./envirotrack:/envirotrack
-#       - ./backups:/backups 
-#     environment:
-#       - DB_ENGINE=django.db.backends.postgresql
-#       - DB_NAME=dbname
-#       - DB_USER=dbuser
-#       - DB_PASS=pass
-#       - DB_HOST=database
-#       - DB_PORT=5432
-#       - CELERY_BROKER_URL=redis://redis:6379/0
-#     depends_on:
-#       - database
-#       - redis
-#     command: >
-#       sh -c "
-#       python manage.py migrate &&
-#       python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'pass')\" &&
-#       gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug
-#       "
-#     networks:
-#       - envirotrack-network
-
-#   database:
-#     image: postgres:latest
-#     environment:
-#       - POSTGRES_DB=dbname
-#       - POSTGRES_USER=dbuser
-#       - POSTGRES_PASSWORD=pass
-#     ports:
-#       - "5432:5432"
-#     networks:
-#       - envirotrack-network
-
-#   web-app-frontend:
-#     build: 
-#       context: ./envirotrack/frontend  
-#       dockerfile: Dockerfile.frontend
-#     ports:
-#       - "3000:3000"
-#     volumes:
-#       - ./frontend:/app
-#     depends_on:
-#       - web-app
-#     networks:
-#       - envirotrack-network
-
-#   redis:
-#     image: redis:7.0.5-alpine
-#     hostname: redis
-#     networks:
-#       - envirotrack-network
-
-#   celery:
-#     build: 
-#       context: .
-#       dockerfile: Dockerfile
-#     command: celery -A envirotrack worker --loglevel=info
-#     volumes:
-#       - ./envirotrack:/envirotrack
-#       - ./backups:/backups  
-#     environment:
-#       - DB_ENGINE=django.db.backends.postgresql
-#       - DB_NAME=dbname
-#       - DB_USER=dbuser
-#       - DB_PASS=pass
-#       - DB_HOST=database
-#       - DB_PORT=5432
-#       - CELERY_BROKER_URL=redis://redis:6379/0
-#     depends_on:
-#       - web-app
-#       - redis
-#     networks:
-#       - envirotrack-network
-
-#   celery-beat:
-#     build: 
-#       context: .
-#       dockerfile: Dockerfile
-#     command: celery -A envirotrack beat --loglevel=info
-#     volumes:
-#       - ./envirotrack:/envirotrack
-#       - ./backups:/backups  
-#     environment:
-#       - DB_ENGINE=django.db.backends.postgresql
-#       - DB_NAME=dbname
-#       - DB_USER=dbuser
-#       - DB_PASS=pass
-#       - DB_HOST=database
-#       - DB_PORT=5432
-#       - CELERY_BROKER_URL=redis://redis:6379/0
-#     depends_on:
-#       - web-app
-#       - redis
-#     networks:
-#       - envirotrack-network
-
-#   nginx:
-#     image: nginx:latest
-#     ports:
-#       - "80:80"
-#     volumes:
-#       - ./envirotrack/frontend/build:/app/frontend/build
-#       - ./nginx.conf:/etc/nginx/nginx.conf
-#     depends_on:
-#       - web-app
-#       - web-app-frontend
-#     networks:
-#       - envirotrack-network
-
-# networks:
-#   envirotrack-network:
-#     driver: bridge
-
 version: '3.8'
 
 services:
   web-app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ./envirotrack:/envirotrack
-      - ./backups:/backups 
+      - ./backups:/backups
     environment:
       - DB_ENGINE=django.db.backends.postgresql
-      - DB_NAME=dbname
-      - DB_USER=dbuser
-      - DB_PASS=pass
+      - DB_NAME=${DB_NAME:-dbname}
+      - DB_USER=${DB_USER:-dbuser}
+      - DB_PASS=${DB_PASS:-pass}
       - DB_HOST=database
       - DB_PORT=5432
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@}
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-Pass37198word!}
       - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
       - database
@@ -147,33 +27,22 @@ services:
     command: >
       sh -c "
       python manage.py migrate &&
-      python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', '', 'pass')\" &&
-      gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug
+      python manage.py shell -c \"from django.contrib.auth.models import User; import os; username=os.environ['DJANGO_SUPERUSER_USERNAME']; password=os.environ['DJANGO_SUPERUSER_PASSWORD']; User.objects.filter(username=username).exists() or User.objects.create_superuser(username, '', password)\" &&
+      gunicorn envirotrack.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level info
       "
     networks:
       - envirotrack-network
 
   database:
-    image: postgres:latest
+    image: postgres:16
     environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=${POSTGRES_DB:-dbname}
+      - POSTGRES_USER=${POSTGRES_USER:-dbuser}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pass}
     ports:
-      - "5432:5432"
-    networks:
-      - envirotrack-network
-
-  web-app-frontend:
-    build: 
-      context: ./envirotrack/frontend  
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
+      - "5434:5432"
     volumes:
-      - ./frontend:/app
-    depends_on:
-      - web-app
+      - db-data:/var/lib/postgresql/data
     networks:
       - envirotrack-network
 
@@ -184,20 +53,23 @@ services:
       - envirotrack-network
 
   celery:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
+      args:
+        INSTALL_PG_CLIENT: "true"
     command: sh -c "sleep 10 && celery -A envirotrack worker --loglevel=info"
     volumes:
       - ./envirotrack:/envirotrack
-      - ./backups:/backups  
+      - ./backups:/backups
     environment:
       - DB_ENGINE=django.db.backends.postgresql
-      - DB_NAME=dbname
-      - DB_USER=dbuser
-      - DB_PASS=pass
+      - DB_NAME=${DB_NAME:-dbname}
+      - DB_USER=${DB_USER:-dbuser}
+      - DB_PASS=${DB_PASS:-pass}
       - DB_HOST=database
       - DB_PORT=5432
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@}
       - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
       - web-app
@@ -206,20 +78,21 @@ services:
       - envirotrack-network
 
   celery-beat:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     command: sh -c "sleep 10 && celery -A envirotrack beat --loglevel=info"
     volumes:
       - ./envirotrack:/envirotrack
-      - ./backups:/backups  
+      - ./backups:/backups
     environment:
       - DB_ENGINE=django.db.backends.postgresql
-      - DB_NAME=dbname
-      - DB_USER=dbuser
-      - DB_PASS=pass
+      - DB_NAME=${DB_NAME:-dbname}
+      - DB_USER=${DB_USER:-dbuser}
+      - DB_PASS=${DB_PASS:-pass}
       - DB_HOST=database
       - DB_PORT=5432
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@}
       - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
       - web-app
@@ -234,12 +107,16 @@ services:
     volumes:
       - ./envirotrack/frontend/build:/app/frontend/build
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./envirotrack/media:/envirotrack/media
+      - ./envirotrack/static:/envirotrack/static
     depends_on:
       - web-app
-      - web-app-frontend
     networks:
       - envirotrack-network
 
 networks:
   envirotrack-network:
     driver: bridge
+
+volumes:
+  db-data:

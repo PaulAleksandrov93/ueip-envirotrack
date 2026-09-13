@@ -5,14 +5,11 @@ __pycache__/
 # Django
 *.log
 *.pot
-*.pyc
 *.pyo
 *.db
 *.sqlite3
 *.env
 db.sqlite3
-/media
-/static
 
 # Env files
 .env
@@ -24,18 +21,13 @@ env/
 env.bak/
 venv.bak/
 
-# Django migrations
-**/migrations/*
-
 # Node.js
 node_modules/
 npm-debug.log
 yarn-error.log
 
 # React build
-/build
 .DS_Store
-*.log
 build/
 
 # Coverage reports
@@ -49,11 +41,16 @@ coverage.xml
 *.cover
 *.py,cover
 
-# MySQL
+# MySQL / PostgreSQL dumps (local)
 *.sql
-
-# PostgreSQL
 *.pgsql
+
+# Backups, media and collectstatic output
+backups/
+envirotrack/media/
+envirotrack/static/
+**/celerybeat-schedule*
+celerybeat-schedule
 
 # Other
 *.swp
@@ -72,8 +69,6 @@ docker-compose.override.yml
 .env.production
 docker-sync.yml
 .docker
-.dockerignore
-
 
 # Windows
 Thumbs.db

@@ -22,7 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = 'django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@'
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -120,7 +123,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.static',
+                # 'django.template.context_processors.static',
             ],
         },
     },
@@ -128,9 +131,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'envirotrack.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Получаем параметры подключения к базе данных из переменных окружения или используем значения по умолчанию
 DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.postgresql')
@@ -173,7 +173,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'ru-RU'
+LANGUAGE_CODE = 'ru'
+
+LANGUAGES = [
+    ('ru', 'Русский'),
+]
 
 TIME_ZONE = 'UTC'
 
@@ -198,7 +202,8 @@ STATICFILES_DIRS = [
 
 # STATIC_ROOT = BASE_DIR / 'frontend/build/static/admin/static'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'frontend/build/static/admin/static')
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -207,60 +212,71 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+CSRF_TRUSTED_ORIGINS = ['https://ueip-s-is02.ueip.ru']
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/debug.log'),
-            'formatter': 'verbose'
-        },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/error.log'),
-            'formatter': 'verbose'
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.request': {
-            'handlers': ['error_file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-    },
-}
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/envirotrack/media"
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '{levelname} {asctime} {module} {message}',
+#             'style': '{',
+#         },
+#         'simple': {
+#             'format': '{levelname} {message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'simple'
+#         },
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': os.path.join(BASE_DIR, 'logs/debug.log'),
+#             'formatter': 'verbose'
+#         },
+#         'error_file': {
+#             'level': 'ERROR',
+#             'class': 'logging.FileHandler',
+#             'filename': os.path.join(BASE_DIR, 'logs/error.log'),
+#             'formatter': 'verbose'
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console', 'file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'django.request': {
+#             'handlers': ['error_file'],
+#             'level': 'ERROR',
+#             'propagate': False,
+#         },
+#     },
+# }
+
+   
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
 
 CELERY_BEAT_SCHEDULE = {
-    'backup-db-every-30-minutes': {
+    'backup-db-every-6-hours': {
         'task': 'backend.tasks.backup_db',
         'schedule': crontab(minute=0, hour='*/6'),
         # 'schedule': crontab(minute='*/30'),

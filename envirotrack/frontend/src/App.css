@@ -1,6 +1,33 @@
 /* App.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap');
+@font-face {
+  font-family: 'Lexend';
+  src: url('./assets/fonts/lexend/static/Lexend-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('./assets/fonts/lexend/static/Lexend-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('./assets/fonts/roboto/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('./assets/fonts/roboto/Roboto-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
 
 :root {
   --color-main: #f68657;
@@ -80,8 +107,8 @@ a {
   position: relative;
   display: flex;
   flex-direction: column; 
-  /* height: 100%; */
-  height: 100vh;
+  height: 100%;
+  /* height: 100vh; */
 }
 
 .app-header {
@@ -288,4 +315,8 @@ input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+body {
+  min-width: 1200px;
 }

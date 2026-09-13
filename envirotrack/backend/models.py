@@ -4,8 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from dateutil.relativedelta import relativedelta
 import datetime
-
-
+from django.utils import timezone
 class Profession(models.Model):
     name = models.CharField(max_length=50, verbose_name='Название')
 
@@ -99,7 +98,7 @@ class AdditionalParameters(models.Model):
         verbose_name = 'Дополнительные параметры'
         verbose_name_plural = 'Дополнительные параметры'
 
-
+    
 class MeasurementInstrument(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
     type = models.CharField(max_length=255, verbose_name='Тип')
@@ -112,12 +111,36 @@ class MeasurementInstrument(models.Model):
     year_of_manufacture = models.PositiveIntegerField(default=2000, verbose_name='Год выпуска СИ')
     suitability = models.BooleanField(verbose_name='Пригодность СИ', default=True) 
 
-    
+    def calculate_next_calibration_date(self):
+        """Вычисляет дату следующей поверки"""
+        if self.calibration_date and self.calibration_interval:
+            return self.calibration_date + relativedelta(months=self.calibration_interval) - datetime.timedelta(days=1)
+        return None
+
+    def calculate_current_suitability(self):
+        """Вычисляет текущую пригодность"""
+        if self.next_calibration_date:
+            today = timezone.now().date()
+            return self.next_calibration_date >= today
+        return self.suitability
+
+    # def save(self, *args, **kwargs):
+    #     # Вычисляем дату следующей поверки
+    #     self.next_calibration_date = self.calculate_next_calibration_date()
+        
+    #     # Автоматически вычисляем пригодность
+    #     self.suitability = self.calculate_current_suitability()
+        
+    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
         # Вычисляем дату следующей поверки
-        if self.calibration_date and self.calibration_interval:
-            next_calibration_date = self.calibration_date + relativedelta(months=self.calibration_interval) - datetime.timedelta(days=1)
-            self.next_calibration_date = next_calibration_date
+        self.next_calibration_date = self.calculate_next_calibration_date()
+        
+        # ВАЖНО: Всегда пересчитываем пригодность по актуальной дате
+        if self.next_calibration_date:
+            self.suitability = self.next_calibration_date >= timezone.now().date()
+        # Если next_calibration_date нет, оставляем текущее значение suitability
+        
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -126,18 +149,16 @@ class MeasurementInstrument(models.Model):
     class Meta:
         verbose_name = 'Средство измерений'
         verbose_name_plural = 'Средства измерений'
-    
-
 
 class ParameterSet(models.Model):
-    temperature_celsius = models.DecimalField(max_digits=5, decimal_places=2)
-    humidity_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    pressure_kpa = models.DecimalField(max_digits=7, decimal_places=2, blank=True)
-    pressure_mmhg = models.DecimalField(max_digits=7, decimal_places=2, blank=True)
-    time = models.TimeField()
+    temperature_celsius = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Температура (°C)')
+    humidity_percentage = models.DecimalField(max_digits=5, decimal_places=1, verbose_name='Влажность (%)')
+    pressure_kpa = models.DecimalField(max_digits=7, decimal_places=2, blank=True, verbose_name='Давление (кПа)')
+    pressure_mmhg = models.DecimalField(max_digits=7, decimal_places=2, blank=True, verbose_name='Давление (мм рт. ст.)')
+    time = models.TimeField(verbose_name='Время')
 
     def __str__(self):
-        return f'Parameter Set {self.id}'
+        return f'Набор параметров {self.id}'
 
     class Meta:
         verbose_name = 'Набор параметров'
@@ -145,31 +166,42 @@ class ParameterSet(models.Model):
 
 
 class ExtendedParameterSet(ParameterSet):
-    voltage = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    frequency = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    radiation = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    voltage = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True, verbose_name='Напряжение (В)')
+    frequency = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True, verbose_name='Частота (Гц)')
+    radiation = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True, verbose_name='Радиационный фон')
 
     class Meta:
         verbose_name = 'Расширенный набор параметров'
         verbose_name_plural = 'Расширенные наборы параметров'
         
 class ParameterSetForStorage(models.Model):
-    temperature_celsius = models.DecimalField(max_digits=5, decimal_places=2)
-    humidity_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    time = models.TimeField()
+    temperature_celsius = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Температура (°C)')
+    humidity_percentage = models.DecimalField(max_digits=5, decimal_places=1, verbose_name='Влажность (%)')
+    time = models.TimeField(verbose_name='Время')
 
     def __str__(self):
-        return f'Parameter Set For Storage {self.id}'
+        return f'Набор параметров КВХ {self.id}'
 
     class Meta:
         verbose_name = 'Набор параметров для КВХ'
         verbose_name_plural = 'Наборы параметров КВХ'
-        
-        
+
 class BuildingParameterSet(models.Model):
     voltage = models.FloatField(verbose_name='Напряжение питающей сети (В)')
     frequency = models.FloatField(verbose_name='Частота переменного тока (Гц)')
-    time = models.TimeField()
+    time = models.TimeField(verbose_name='Время')
+
+    # Новые поля
+    waveform_shape = models.CharField(
+        max_length=100,
+        verbose_name='Форма кривой переменного напряжения питающей сети',
+        default='синусоидальная'
+    )
+    harmonic_coefficient = models.FloatField(
+        verbose_name='Коэффициент несинусоидальности кривой напряжения (коэффициент гармоник)',
+        help_text='Введите значение в процентах. Например, 4.3 означает 4.3%',
+        default=0
+    )
 
     def __str__(self):
         return f'Parameter Set for Building {self.id}'
@@ -180,18 +212,18 @@ class BuildingParameterSet(models.Model):
 
 
 class EnviromentalParameters(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    responsible = models.ForeignKey(Responsible, related_name='environmental_parameters', on_delete=models.SET_NULL, null=True)
-    measurement_instruments = models.ManyToManyField(MeasurementInstrument, null=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, verbose_name='Помещение')
+    responsible = models.ForeignKey(Responsible, related_name='environmental_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Ответственный')
+    measurement_instruments = models.ManyToManyField(MeasurementInstrument, verbose_name='Средства измерений')
 
-    created_at = models.DateField(null=True)  # Дата и время создания
-    created_by = models.ForeignKey(User, related_name='created_parameters', on_delete=models.SET_NULL, null=True)  # Кто создал
-    modified_at = models.DateTimeField(auto_now=True, null=True)  # Дата и время последнего изменения
-    modified_by = models.ForeignKey(User, related_name='modified_parameters', on_delete=models.SET_NULL, null=True)  # Кто изменил
+    created_at = models.DateField(null=True, verbose_name='Дата создания')
+    created_by = models.ForeignKey(User, related_name='created_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Кто создал')
+    modified_at = models.DateTimeField(auto_now=True, null=True, verbose_name='Дата изменения')
+    modified_by = models.ForeignKey(User, related_name='modified_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Кто изменил')
 
-    parameter_sets = models.ManyToManyField(ParameterSet, related_name='environmental_parameters_parameter_sets', blank=True)
-    extended_parameter_sets = models.ManyToManyField(ExtendedParameterSet, related_name='environmental_parameters_extended_parameter_sets', blank=True)  
-    parameter_sets_for_storage = models.ManyToManyField(ParameterSetForStorage, related_name='environmental_parameters_parameter_sets_for_storage', blank=True)
+    parameter_sets = models.ManyToManyField(ParameterSet, related_name='environmental_parameters_parameter_sets', blank=True, verbose_name='Наборы параметров')
+    extended_parameter_sets = models.ManyToManyField(ExtendedParameterSet, related_name='environmental_parameters_extended_parameter_sets', blank=True, verbose_name='Расширенные наборы параметров')
+    parameter_sets_for_storage = models.ManyToManyField(ParameterSetForStorage, related_name='environmental_parameters_parameter_sets_for_storage', blank=True, verbose_name='Наборы параметров КВХ')
     
 
     def __str__(self):
@@ -204,22 +236,46 @@ class EnviromentalParameters(models.Model):
 
 class BuildingEnviromentalParameters(models.Model):
     building = models.ForeignKey(Building, on_delete=models.CASCADE, verbose_name='Здание', related_name='building_environmental_parameters')
-    responsible = models.ForeignKey(Responsible, related_name='building_environmental_parameters', on_delete=models.SET_NULL, null=True)
-    measurement_instruments = models.ManyToManyField(MeasurementInstrument, null=True)
+    responsible = models.ForeignKey(Responsible, related_name='building_environmental_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Ответственный')
+    measurement_instruments = models.ManyToManyField(MeasurementInstrument, verbose_name='Средства измерений')
     
-    created_at = models.DateField(null=True)  
-    created_by = models.ForeignKey(User, related_name='created_building_parameters', on_delete=models.SET_NULL, null=True)
-    modified_at = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(User, related_name='modified_building_parameters', on_delete=models.SET_NULL, null=True)
+    created_at = models.DateField(null=True, verbose_name='Дата создания')
+    created_by = models.ForeignKey(User, related_name='created_building_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Кто создал')
+    modified_at = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
+    modified_by = models.ForeignKey(User, related_name='modified_building_parameters', on_delete=models.SET_NULL, null=True, verbose_name='Кто изменил')
 
-    parameter_sets = models.ManyToManyField(BuildingParameterSet, related_name='building_environmental_parameters', blank=True)
+    parameter_sets = models.ManyToManyField(BuildingParameterSet, related_name='building_environmental_parameters', blank=True, verbose_name='Наборы параметров')
 
     def __str__(self):
-        return f'Parameters for Building {self.building}'
+        return f'Параметры для {self.building}'
 
     class Meta:
         verbose_name = 'Параметры окружающей среды для здания'
         verbose_name_plural = 'Параметры окружающей среды для зданий'
         
+# модель для руководства
+class Document(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название документа")
+    file = models.FileField(upload_to='userguide/', verbose_name="Руководство пользователя")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Руководство пользователя'
+        verbose_name_plural = 'Руководства пользователя'
+    
+# модель для списка ответственных    
+class ResponsibleList(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название документа")
+    file = models.FileField(upload_to='Responsible_list/', verbose_name="Список ответственных")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+
+    def __str__(self):
+        return self.name
         
+    class Meta:
+        verbose_name = 'Список ответственных'
+        verbose_name_plural = 'Списки ответственных'
         
