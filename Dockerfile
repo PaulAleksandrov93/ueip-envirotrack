@@ -6,13 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq5 \
+RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
+    && apt-get install -y --no-install-recommends libpq5 \
     && if [ "$INSTALL_PG_CLIENT" = "true" ]; then \
         apt-get install -y --no-install-recommends ca-certificates wget gnupg \
         && wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/pgdg.gpg \
         && echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-        && apt-get update \
+        && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
         && apt-get install -y --no-install-recommends postgresql-client-16 \
         && apt-get purge -y wget gnupg \
         && apt-get autoremove -y; \

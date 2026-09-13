@@ -32,12 +32,10 @@ def revert_humidity_columns(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    """
-    Таблицы уже существуют (миграции раньше не хранились в репозитории).
-    Меняем только точность влажности, не создавая модели заново.
-    """
 
-    dependencies = []
+    dependencies = [
+        ('backend', '0033_alter_enviromentalparameters_options_and_more'),
+    ]
 
     operations = [
         migrations.RunPython(round_humidity_columns, revert_humidity_columns),

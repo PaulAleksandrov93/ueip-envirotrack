@@ -6,6 +6,12 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
 
     python - <<'PY'
 import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "envirotrack.settings")
+
+import django
+django.setup()
+
 from django.contrib.auth import get_user_model
 
 username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")

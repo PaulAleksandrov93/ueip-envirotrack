@@ -7,8 +7,7 @@ RUN npm ci --no-audit --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-r
 
 COPY envirotrack/frontend/ ./
 
-ENV GENERATE_SOURCEMAP=false \
-    CI=true
+ENV GENERATE_SOURCEMAP=false
 
 RUN npm run build
 
