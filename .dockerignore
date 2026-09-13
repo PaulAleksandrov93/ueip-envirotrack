@@ -1,0 +1,30 @@
+.git
+.gitignore
+.cursor
+**/.DS_Store
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.env
+venv/
+.env
+.env.*
+!.env.example
+
+# Node / React
+envirotrack/frontend/node_modules
+envirotrack/frontend/build
+**/npm-debug.log
+
+# Runtime data — not needed in images
+backups
+envirotrack/media
+envirotrack/static
+**/celerybeat-schedule*
+
+# Local clutter
+log_123.txt
+*.md
+docker-compose.override.yml

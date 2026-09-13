@@ -1,0 +1,12 @@
+# Скопируйте в docker-compose.override.yml, чтобы nginx брал
+# локальную сборку фронта без пересборки образа.
+#
+#   cd envirotrack/frontend && npm run build
+
+services:
+  nginx:
+    volumes:
+      - ./envirotrack/frontend/build:/app/frontend/build:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./envirotrack/media:/envirotrack/media:ro
+      - ./envirotrack/static:/envirotrack/static:ro
