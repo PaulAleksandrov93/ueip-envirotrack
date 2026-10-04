@@ -4,7 +4,6 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-
 .login-page {
   display: flex;
   justify-content: center;
@@ -53,12 +52,53 @@ body {
   transform: scale(1.05);
 }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
-
 .login-form label {
   font-size: 16px;
   margin-bottom: 2px;
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #4596d1;
+  font-size: 20px; /* Увеличиваем размер иконки */
+  transition: color 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+  color: #357dbf;
+}
+
+.error-message {
+  color: #ff4444; /* Более насыщенный красный */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ff4444; /* Добавляем рамку */
+  border-radius: 5px;
+  background-color: #ffe6e6; /* Светлый фон для сообщения */
+  width: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.3s ease; /* Анимация появления */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

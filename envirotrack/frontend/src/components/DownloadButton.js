@@ -1,4 +1,4 @@
-// DownloadButton.js
+// DownloadButton.js (для помещений)
 
 import React from 'react';
 import { saveAs } from 'file-saver';
@@ -6,12 +6,16 @@ import './DownloadButton.css';
 
 const DownloadButton = () => {
   const handleDownload = async () => {
-    const confirmation = window.confirm('Вы уверены, что хотите скачать файл?');
+    const confirmation = window.confirm('Вы уверены, что хотите скачать файл с параметрами помещений?');
     if (confirmation) {
       try {
         const response = await fetch('/api/export-parameters/');
         const blob = await response.blob();
-        saveAs(blob, 'env_records.xlsx');
+        
+        const currentDate = new Date().toLocaleDateString('ru-RU');
+        const filename = `Параметры по помещениям от ${currentDate}.xlsx`;
+        
+        saveAs(blob, filename);
       } catch (error) {
         console.error('Ошибка при загрузке файла:', error);
       }
@@ -19,9 +23,9 @@ const DownloadButton = () => {
   };
 
   return (
-    <button className="download-button" onClick={handleDownload}>
+    <button className="download-button" onClick={handleDownload} title="Скачать параметры помещений">
       <svg className="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" fill="#4CAF50" />
+        <circle cx="12" cy="12" r="10" fill="#27ae60" />
         <text x="50%" y="65%" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#FFFFFF">
           Excel
         </text>

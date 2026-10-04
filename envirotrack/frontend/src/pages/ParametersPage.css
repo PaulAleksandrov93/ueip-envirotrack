@@ -1,7 +1,5 @@
 /*ParametersPage.css*/
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
 .parameter {
   display: flex;
   flex-direction: column;
@@ -169,4 +167,229 @@
 .parameter-boundaries div {
   margin-bottom: 10px;
   font-family: 'Roboto', sans-serif; 
+}
+
+.parameter-boundaries > div > div {
+  margin-bottom: 8px;
+  display: block; 
+}
+
+.info-text {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+
+
+/* --- */
+
+/* Warning styles */
+.exceeded-warning {
+  color: red;
+  font-weight: bold;
+  margin-left: 5px;
+  cursor: help;
+}
+
+/* Warning modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.warning-modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.warning-modal h3 {
+  color: #d9534f;
+  margin-top: 0;
+}
+
+.warning-modal ul {
+  padding-left: 20px;
+}
+
+.warning-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.warning-modal-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.warning-modal-buttons button:first-child {
+  background-color: #f0f0f0;
+}
+
+.warning-modal-buttons button:last-child {
+  background-color: #d9534f;
+  color: white;
+}
+
+.exceeded-warning-left {
+  color: red;
+  font-weight: bold;
+  margin-right: 5px;
+  cursor: help;
+  display: inline-block;
+}
+
+/* ParametersListPage.css */
+
+.pagination-info {
+  padding: 10px 20px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.pagination-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.page-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.end-of-list {
+  text-align: center;
+  padding: 20px;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Стили для негодных СИ в выпадающем списке */
+.custom-select .react-select__option--unsuitable {
+  background-color: #ffe6e6 !important;
+  color: #cc0000 !important;
+  font-weight: 600;
+}
+
+.custom-select .react-select__option--unsuitable:hover {
+  background-color: #ffcccc !important;
+}
+
+/* Иконка предупреждения в выпадающем списке */
+.unsuitable-indicator {
+  color: #cc0000;
+  font-weight: bold;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* Контейнер для предупреждения под выбранным СИ */
+.unsuitable-warning {
+  margin-top: 5px;
+  padding: 8px 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.unsuitable-warning-icon {
+  color: #ffc107;
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }

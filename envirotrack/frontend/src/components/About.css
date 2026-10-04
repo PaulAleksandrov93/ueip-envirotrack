@@ -1,0 +1,51 @@
+/* About.css */
+
+/* Основные стили для страницы "О программе" */
+.about-page {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+  color: #2c3e50;
+}
+
+.about-page h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3498db;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.about-page p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+.about-page p:last-child {
+  margin-bottom: 0;
+  font-weight: 700;
+  color: #3498db;
+  text-align: center;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+  .about-page {
+    margin: 20px;
+    padding: 15px;
+  }
+
+  .about-page h2 {
+    font-size: 24px;
+  }
+
+  .about-page p {
+    font-size: 14px;
+  }
+}

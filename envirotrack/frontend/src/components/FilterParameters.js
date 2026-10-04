@@ -29,7 +29,11 @@ const FilterParameters = ({ onFilterChange, onResetFilters }) => {
 
         if (responsiblesResponse.ok) {
           const responsiblesData = await responsiblesResponse.json();
-          setResponsibles(responsiblesData);
+          // Сортируем ответственных по фамилии (last_name)
+          const sortedResponsibles = [...responsiblesData].sort((a, b) => 
+            a.last_name.localeCompare(b.last_name)
+          );
+          setResponsibles(sortedResponsibles);
         }
 
         const roomsResponse = await fetch('/api/rooms/', {
@@ -42,7 +46,11 @@ const FilterParameters = ({ onFilterChange, onResetFilters }) => {
 
         if (roomsResponse.ok) {
           const roomsData = await roomsResponse.json();
-          setRooms(roomsData);
+          // Сортируем помещения по номеру (как числам)
+          const sortedRooms = [...roomsData].sort((a, b) => 
+            parseInt(a.room_number) - parseInt(b.room_number)
+          );
+          setRooms(sortedRooms);
         }
       } catch (error) {
         console.error('Error fetching data:', error);

@@ -12,6 +12,7 @@ const SubHeader = ({ setActiveComponent }) => {
       <Link to="/rooms-parameters" className={location.pathname === "/rooms-parameters" ? 'active' : ''} onClick={() => setActiveComponent('parameters')}>Параметры по помещениям</Link>
       <Link to="/buildings-parameters" className={location.pathname === "/buildings-parameters" ? 'active' : ''} onClick={() => setActiveComponent('buildingParameters')}>Параметры по зданиям</Link>
       <Link to="/measuring-instruments" className={location.pathname === "/measuring-instruments" ? 'active' : ''} onClick={() => setActiveComponent('measuringInstruments')}>Средства измерений</Link>
+      <Link to="/boundary-parameters" className={location.pathname === "/boundary-parameters" ? 'active' : ''} onClick={() => setActiveComponent('boundaryParameters')}>Граничные параметры</Link>
     </div>
   );
 };

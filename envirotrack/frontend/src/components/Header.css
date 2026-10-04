@@ -1,6 +1,6 @@
 /* Header.css */
 
-.app-header {
+/* .app-header {
   display: flex;
   align-items: center;
   background-color: #3498db;
@@ -82,4 +82,122 @@
   cursor: pointer;
   font-weight: bold;
   font-size: 12px;
+} */
+
+
+
+/* Header.css */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  background-color: #3498db;
+  padding: 10px;
+}
+
+.app-logo {
+  width: 80px;
+  height: auto;
+  fill: white;
+}
+
+.app-title {
+  margin-left: 10px;
+  color: white;
+  font-size: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  position: relative;
+}
+
+.user-greeting {
+  color: white;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.settings-menu {
+  position: relative;
+}
+
+.gear-icon {
+  width: 30px;
+  height: 30px;
+  fill: white;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.gear-icon.rotating {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+}
+
+.dropdown-menu li {
+  list-style: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #2c3e50;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-menu li:hover {
+  background-color: #3498db;
+  color: #ffffff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px 12px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  background-color: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #0056b3;
+}
+
+.nav-link:active {
+  background-color: #0056b3;
+  color: #fff;
+}
+
+.nav-link:focus {
+  outline: none;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.8);
 }

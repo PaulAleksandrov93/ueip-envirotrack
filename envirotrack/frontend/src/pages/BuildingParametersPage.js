@@ -31,6 +31,83 @@ const BuildingParametersPage = () => {
   const [measurementInstruments, setMeasurementInstruments] = useState([]);
   const [selectedMeasurementInstruments, setSelectedMeasurementInstruments] = useState([]);
   
+
+  // ---
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [exceededParameters, setExceededParameters] = useState([]);
+  // ---
+
+  const renderExceededWarning = (paramName, paramValue, setIndex) => {
+    if (!selectedBuilding || paramValue === '') return null;
+    
+    const value = parseFloat(paramValue);
+    let min, max;
+    
+    switch (paramName) {
+      case 'voltage':
+        min = selectedBuilding.voltage_min;
+        max = selectedBuilding.voltage_max;
+        break;
+      case 'frequency':
+        min = selectedBuilding.frequency_min;
+        max = selectedBuilding.frequency_max;
+        break;
+      default:
+        return null;
+    }
+    
+    if (value < min || value > max) {
+      return (
+        <span className="exceeded-warning" title={`Значение выходит за границы допустимых (${min} - ${max})`}>
+          !
+        </span>
+      );
+    }
+    
+    return null;
+  };
+
+  // Проверка граничных параметров
+  const checkParameterBoundaries = () => {
+    if (!selectedBuilding) return [];
+    
+    const exceeded = [];
+    
+    parameterSets.forEach((paramSet, setIndex) => {
+      // Проверка напряжения
+      if (paramSet.voltage !== '') {
+        const voltage = parseFloat(paramSet.voltage);
+        if (voltage < selectedBuilding.voltage_min || voltage > selectedBuilding.voltage_max) {
+          exceeded.push({
+            parameter: 'Напряжение',
+            value: voltage,
+            min: selectedBuilding.voltage_min,
+            max: selectedBuilding.voltage_max,
+            unit: 'В',
+            setIndex
+          });
+        }
+      }
+      
+      // Проверка частоты
+      if (paramSet.frequency !== '') {
+        const frequency = parseFloat(paramSet.frequency);
+        if (frequency < selectedBuilding.frequency_min || frequency > selectedBuilding.frequency_max) {
+          exceeded.push({
+            parameter: 'Частота',
+            value: frequency,
+            min: selectedBuilding.frequency_min,
+            max: selectedBuilding.frequency_max,
+            unit: 'Гц',
+            setIndex
+          });
+        }
+      }
+    });
+    
+    return exceeded;
+  };
+
   useEffect(() => {
     setSelectedMeasurementInstruments([{ value: null, label: 'Выбрать СИ' }]);
   }, []);
@@ -63,6 +140,8 @@ const BuildingParametersPage = () => {
     {
       voltage: '',
       frequency: '',
+      waveform_shape: 'синусоидальная', // Устанавливаем значение по умолчанию
+      harmonic_coefficient: '',          // Пустое значение для ввода процента
       time: '',
     }
   ]);
@@ -252,13 +331,14 @@ const BuildingParametersPage = () => {
     return parameterSets.map((parameterSet, index) => (
       <div key={index} className='parameter-set'>
         <div className='left-column'>
-          <div className='parameter-field'>
+          {/* <div className='parameter-field'>
             <label htmlFor='voltage'>Напряжение питающей сети, В:</label>
             <input
               type='number'
               value={parameterSet.voltage}
               onChange={(e) => handleParameterSetChange(index, 'voltage', e.target.value)}
             />
+            {renderExceededWarning('voltage', parameterSet.voltage, index)}
           </div>
           <div className='parameter-field'>
             <label htmlFor='frequency'>Частота переменного тока, Гц:</label>
@@ -267,7 +347,45 @@ const BuildingParametersPage = () => {
               value={parameterSet.frequency}
               onChange={(e) => handleParameterSetChange(index, 'frequency', e.target.value)}
             />
+            {renderExceededWarning('frequency', parameterSet.frequency, index)}
+          </div> */}
+          <div className='parameter-field'>
+            <label htmlFor='voltage'>Напряжение питающей сети, В:</label>
+            {renderExceededWarning('voltage', parameterSet.voltage, index)}
+            <input
+              type='number'
+              value={parameterSet.voltage}
+              onChange={(e) => handleParameterSetChange(index, 'voltage', e.target.value)}
+            />
           </div>
+          <div className='parameter-field'>
+            <label htmlFor='frequency'>Частота переменного тока, Гц:</label>
+            {renderExceededWarning('frequency', parameterSet.frequency, index)}
+            <input
+              type='number'
+              value={parameterSet.frequency}
+              onChange={(e) => handleParameterSetChange(index, 'frequency', e.target.value)}
+            />
+          </div>
+          <div className="parameter-field">
+            <label htmlFor={`waveform_shape`}>Форма кривой переменного напряжения:</label>
+            <input
+              type="text"
+              value={parameterSet.waveform_shape || 'синусоидальная'}  // Устанавливаем значение по умолчанию
+              onChange={(e) => handleParameterSetChange(index, 'waveform_shape', e.target.value)}
+            />
+          </div>
+
+          <div className="parameter-field">
+            <label htmlFor={`harmonic_coefficient`}>Коэффициент гармоник (%):</label>
+            <input
+              type="number"
+              id={`harmonic_coefficient`}
+              value={parameterSet.harmonic_coefficient || ''}  // Пустое значение для ввода процента
+              onChange={(e) => handleParameterSetChange(index, 'harmonic_coefficient', e.target.value)}
+            />
+          </div>
+          
           <div className='parameter-field'>
             <label htmlFor='time'>Время:</label>
             <input
@@ -439,13 +557,35 @@ const BuildingParametersPage = () => {
     setParameter((prevParameter) => ({ ...prevParameter, [field]: value }));
   };
 
+  // const handleSave = async () => {
+  //   if (id === 'new') {
+  //     createParameters();
+  //   } else {
+  //     await updateParameter();
+  //   }
+  // };
+
+  // ---
   const handleSave = async () => {
+    if (!validateFields()) return;
+    
+    const exceededParams = checkParameterBoundaries();
+    if (exceededParams.length > 0) {
+      setExceededParameters(exceededParams);
+      setShowWarningModal(true);
+    } else {
+      proceedWithSave();
+    }
+  };
+
+  const proceedWithSave = async () => {
     if (id === 'new') {
-      createParameters();
+      await createParameters();
     } else {
       await updateParameter();
     }
   };
+  // ---
 
   return (
     <div className='parameter'>
@@ -492,7 +632,7 @@ const BuildingParametersPage = () => {
         <div className='left-column'>
           <div className='parameter-field'>
             <label htmlFor='building'>Здание:</label>
-            <Select
+            {/* <Select
               className="custom-select"
               options={buildings ? buildings.map((building) => ({ 
                 value: building.id, 
@@ -508,6 +648,31 @@ const BuildingParametersPage = () => {
                 setSelectedBuilding(newSelectedBuilding)
               }}
               placeholder="Выбрать здание"
+            /> */}
+            <Select
+              className="custom-select"
+              options={buildings 
+                ? [...buildings]
+                    .sort((a, b) => a.building_number.localeCompare(b.building_number, undefined, { 
+                      numeric: true, 
+                      sensitivity: 'base' 
+                    }))
+                    .map((building) => ({ 
+                      value: building.id, 
+                      label: `${building.building_number} (${building.voltage_min}-${building.voltage_max}V)`, // Можно добавить доп. информацию
+                      ...building // Все поля здания будут доступны в selectedOption
+                    })) 
+                : []}
+              value={selectedBuilding ? { 
+                value: selectedBuilding.id, 
+                label: selectedBuilding.building_number 
+              } : null}
+              onChange={(selectedOption) => {
+                const newSelectedBuilding = buildings.find(building => building.id === selectedOption.value);
+                setSelectedBuilding(newSelectedBuilding);
+              }}
+              placeholder="Выбрать здание"
+              noOptionsMessage={() => "Здания не найдены"}
             />
           </div>
           <div className='parameter-field'>
@@ -586,6 +751,27 @@ const BuildingParametersPage = () => {
         </div>
       </div>
       {showErrorModal && <ErrorMessageModal message={errorMessage} onClose={closeErrorModal} />}
+
+      {showWarningModal && (
+        <div className="modal-overlay">
+          <div className="warning-modal">
+            <h3>Предупреждение</h3>
+            <p>Следующие параметры выходят за границы допустимых значений:</p>
+            <ul>
+              {exceededParameters.map((param, idx) => (
+                <li key={idx}>
+                  {param.parameter}: {param.value} {param.unit} (допустимо: {param.min} - {param.max} {param.unit})
+                  {parameterSets.length > 1 && ` (Набор параметров ${param.setIndex + 1})`}
+                </li>
+              ))}
+            </ul>
+            <div className="warning-modal-buttons">
+              <button onClick={() => setShowWarningModal(false)}>Отменить</button>
+              <button onClick={proceedWithSave}>Сохранить несмотря на предупреждение</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     );
 };

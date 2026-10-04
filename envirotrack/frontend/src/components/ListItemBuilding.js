@@ -11,9 +11,14 @@ const renderParameterSets = ({ parameterSets, building }) => {
   return parameterSets.map((paramSet, index) => {
     let voltageClassName = '';
     let frequencyClassName = '';
+    let harmonicClassName = '';
+    let waveformClassName = '';
     
     const voltage = parseFloat(paramSet.voltage).toFixed(2);
     const frequency = parseFloat(paramSet.frequency).toFixed(2);
+    const harmonicCoefficient = parseFloat(paramSet.harmonic_coefficient).toFixed(1);
+    const waveformShape = paramSet.waveform_shape;
+
    
     if (!isNaN(voltage) && (building.voltage_min !== null && building.voltage_max !== null)) {
       if (voltage < building.voltage_min || voltage > building.voltage_max) {
@@ -26,13 +31,25 @@ const renderParameterSets = ({ parameterSets, building }) => {
         frequencyClassName = 'invalid';
       }
     }
+    // Проверка на корректность коэффициента гармоник
+    if (!isNaN(harmonicCoefficient) && building.harmonic_min !== null && building.harmonic_max !== null) {
+      if (harmonicCoefficient < building.harmonic_min || harmonicCoefficient > building.harmonic_max) {
+        harmonicClassName = 'invalid';
+      }
+    }
 
+    // Проверка на стандартное значение формы кривой
+    if (waveformShape !== 'синусоидальная') {
+      waveformClassName = 'invalid';
+    }
     return (
       <div key={index} className="parameter-set">
         <div className="parameter-item">
           <span>Набор {index + 1}:</span>
           <span className={voltageClassName}> Напряжение питающей сети (В): {voltage},</span>
           <span className={frequencyClassName}> Частота переменного тока (Гц): {frequency},</span>
+          <span className={waveformClassName}> Форма кривой: {waveformShape},</span>
+          <span className={harmonicClassName}> Коэффициент гармоник (%): {harmonicCoefficient}</span>
           <span> Время создания: {paramSet.time}</span>
         </div>
       </div>

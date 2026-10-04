@@ -1,0 +1,346 @@
+/* BoundaryParametersPage.css - Updated with unique class names */
+.boundary-parameters-container {
+  display: flex;
+  flex-direction: column;
+  height: 91vh;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+  width: 100%;
+  font-family: 'Roboto', sans-serif;
+}
+
+.boundary-filter-tabs {
+  display: flex;
+  margin: 0;
+  padding: 15px 15px 0 15px;
+  background-color: #f4f4f4;
+  border-bottom: 2px solid #4596d1;
+  gap: 5px;
+}
+
+.boundary-tab, .boundary-active-tab {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 4px 4px 0 0;
+  color: #555;
+}
+
+.boundary-active-tab {
+  background-color: #4596d1;
+  color: white;
+  font-weight: 600;
+}
+
+.boundary-tab:hover {
+  background-color: #e8f0f8;
+}
+
+.boundary-search-container {
+  display: flex;
+  gap: 12px;
+  margin: 15px;
+  align-items: center;
+  background-color: white;
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.boundary-search-input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  min-width: 160px;
+  flex: 1;
+  font-family: inherit;
+}
+
+.boundary-search-input:focus {
+  outline: none;
+  border-color: #4596d1;
+  box-shadow: 0 0 3px rgba(69, 150, 209, 0.3);
+}
+
+.boundary-clear-button {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.boundary-clear-button:hover {
+  background-color: #5a6268;
+}
+
+.boundary-data-header {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 15px;
+  background-color: #4596d1;
+  color: white;
+  padding: 12px 15px;
+  font-weight: 600;
+  margin: 0 15px;
+  border-radius: 4px 4px 0 0;
+  font-size: 14px;
+}
+
+.boundary-header-item, .boundary-header-params {
+  text-align: left;
+}
+
+.boundary-data-content {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 15px 15px 15px;
+  padding: 0;
+}
+
+.boundary-data-item {
+  background-color: white;
+  border-radius: 0 0 4px 4px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  border-top: none;
+}
+
+.boundary-item-header {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  color: #2c3e50;
+  text-align: left;
+}
+
+.boundary-item-content {
+  padding: 12px 15px;
+}
+
+.boundary-par-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.boundary-par-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+  min-height: 36px;
+}
+
+.boundary-par-label {
+  font-weight: 500;
+  color: #444;
+  font-size: 13px;
+  text-align: left;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.boundary-par-value {
+  color: #222;
+  font-weight: 400;
+  font-size: 13px;
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+}
+
+.boundary-loading {
+  text-align: center;
+  padding: 30px;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.boundary-no-data {
+  text-align: center;
+  color: #6c757d;
+  padding: 30px;
+  font-style: italic;
+  background-color: white;
+  border-radius: 6px;
+  margin: 15px;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .boundary-filter-tabs {
+    padding: 12px 12px 0 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .boundary-tab, .boundary-active-tab {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .boundary-search-container {
+    flex-direction: column;
+    margin: 12px;
+    gap: 8px;
+    padding: 10px;
+  }
+  
+  .boundary-search-input {
+    min-width: auto;
+    width: 100%;
+    font-size: 12px;
+  }
+  
+  .boundary-clear-button {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .boundary-data-header {
+    grid-template-columns: 1fr;
+    margin: 0 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    gap: 8px;
+  }
+  
+  .boundary-data-content {
+    margin: 0 12px 12px 12px;
+  }
+  
+  .boundary-par-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .boundary-par-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 10px;
+    min-height: auto;
+  }
+  
+  .boundary-par-label {
+    margin-right: 0;
+    font-size: 12px;
+  }
+  
+  .boundary-par-value {
+    text-align: left;
+    font-size: 12px;
+    width: 100%;
+  }
+  
+  .boundary-item-header {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .boundary-item-content {
+    padding: 10px 12px;
+  }
+}
+
+/* Улучшенные стили для скролла */
+.boundary-data-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.boundary-data-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.boundary-data-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.boundary-data-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Убираем лишние отступы и выравниваем по левому краю */
+.boundary-parameters-container * {
+  box-sizing: border-box;
+}
+
+/* Улучшаем читаемость текста */
+.boundary-par-label, .boundary-par-value {
+  line-height: 1.3;
+}
+
+/* Компактные отступы для контейнеров */
+.boundary-search-container,
+.boundary-data-header,
+.boundary-data-item,
+.boundary-par-item {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Выравнивание текста по левому краю везде */
+.boundary-item-header,
+.boundary-par-label,
+.boundary-par-value,
+.boundary-loading,
+.boundary-no-data {
+  text-align: left;
+}
+
+/* Более компактные отступы для мобильных */
+@media (max-width: 480px) {
+  .boundary-parameters-container {
+    height: 92vh;
+  }
+  
+  .boundary-filter-tabs {
+    padding: 10px 10px 0 10px;
+  }
+  
+  .boundary-search-container {
+    margin: 10px;
+    padding: 8px;
+  }
+  
+  .boundary-data-header {
+    margin: 0 10px;
+    padding: 8px 10px;
+  }
+  
+  .boundary-data-content {
+    margin: 0 10px 10px 10px;
+  }
+  
+  .boundary-item-header {
+    padding: 8px 10px;
+  }
+  
+  .boundary-item-content {
+    padding: 8px 10px;
+  }
+}

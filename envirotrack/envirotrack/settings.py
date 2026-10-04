@@ -22,15 +22,64 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = os.getenv(
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv(
     'SECRET_KEY',
     'django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@',
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+# Сетевые настройки читаются из .env под теми же именами, что в Метрологии:
+# DJANGO_DEBUG, DJANGO_ALLOWED_HOSTS, DJANGO_CSRF_TRUSTED_ORIGINS,
+# CORS_ALLOWED_ORIGINS, PUBLIC_PORT, DJANGO_HTTPS_ONLY.
+def env_bool(name, default=False):
+    return os.getenv(name, '1' if default else '0').strip().lower() in (
+        '1', 'true', 'yes', 'on'
+    )
+
+
+def env_list(name, default=''):
+    return [item.strip() for item in os.getenv(name, default).split(',') if item.strip()]
+
+
+def origins_for(hosts, port=''):
+    """Собирает http/https-источники для CSRF и CORS из списка хостов."""
+    suffix = f':{port}' if port and port not in ('80', '443') else ''
+    origins = []
+    for host in hosts:
+        if host in ('*', 'web-app'):
+            continue
+        for scheme in ('https', 'http'):
+            origin = f'{scheme}://{host}{suffix}'
+            if origin not in origins:
+                origins.append(origin)
+    return origins
+
+
+def merge_origins(*groups):
+    merged = []
+    for group in groups:
+        for origin in group:
+            if origin not in merged:
+                merged.append(origin)
+    return merged
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env_bool('DJANGO_DEBUG', default=False)
+
+# Порт, который видит браузер. 80 и 443 в источники не подставляются.
+PUBLIC_PORT = os.getenv('PUBLIC_PORT', '')
+
+# Боевой домен установки. Входит в хосты всегда, чтобы при обновлении
+# не приходилось заново вписывать его в .env.
+PRODUCTION_HOSTS = ('ueip-s-is02.ueip.ru',)
+
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,web-app')
+
+# По 127.0.0.1 ходит healthcheck контейнера, по web-app - nginx.
+for _host in ('localhost', '127.0.0.1', 'web-app', *PRODUCTION_HOSTS):
+    if _host not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -210,9 +259,23 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Источники выводятся из DJANGO_ALLOWED_HOSTS; значения из .env их
+# дополняют, а не заменяют, чтобы домен не терялся из-за неполного списка.
+CSRF_TRUSTED_ORIGINS = merge_origins(
+    env_list('DJANGO_CSRF_TRUSTED_ORIGINS'),
+    origins_for(ALLOWED_HOSTS, PUBLIC_PORT),
+    ['http://localhost:3000'],  # dev-сервер React
+)
 
-CSRF_TRUSTED_ORIGINS = ['https://ueip-s-is02.ueip.ru']
+# В разработке фронтенд живёт на отдельном порту, поэтому allow-all удобен.
+# В проде фронтенд и API за одним nginx, и список источников явный.
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_CREDENTIALS = True
+if not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = merge_origins(
+        env_list('CORS_ALLOWED_ORIGINS'),
+        origins_for(ALLOWED_HOSTS, PUBLIC_PORT),
+    )
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # MEDIA_URL = '/media/'
@@ -221,8 +284,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 MEDIA_URL = "/media/"
 MEDIA_ROOT = "/envirotrack/media"
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Боевой стенд работает по https, поэтому по умолчанию cookie защищённые.
+# Для локального запуска по http поставьте DJANGO_HTTPS_ONLY=0, иначе
+# вход в админку не сохранится.
+HTTPS_ONLY = env_bool('DJANGO_HTTPS_ONLY', default=True)
+SESSION_COOKIE_SECURE = HTTPS_ONLY
+CSRF_COOKIE_SECURE = HTTPS_ONLY
 
 # LOGGING = {
 #     'version': 1,

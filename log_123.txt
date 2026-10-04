@@ -1,0 +1,448 @@
+C:\Users\Home\Desktop\ueip>docker-compose up --build
+time="2024-07-23T10:39:35+05:00" level=warning msg="C:\\Users\\Home\\Desktop\\ueip\\docker-compose.yml: `version` is obsolete"
+[+] Building 251.8s (15/16)                                                                                                                 docker:desktop-linux
+ => => extracting sha256:d7589aea0a02373114f32ff5530359f634ea96c2a2ffb9daaf873b0572d4ad6a                                                                   0.1s
+[+] Building 309.7s (45/45) FINISHED                                                                                                        docker:desktop-linux
+ => [web-app internal] load build definition from Dockerfile                                                                                                0.0s
+ => => transferring dockerfile: 2.52kB                                                                                                                      0.0s
+ => [celery internal] load metadata for docker.io/library/python:3.9-slim-bullseye                                                                         10.3s
+ => [web-app auth] library/python:pull token for registry-1.docker.io                                                                                       0.0s
+ => [web-app internal] load .dockerignore                                                                                                                   0.0s
+ => => transferring context: 2B                                                                                                                             0.0s
+ => [web-app internal] load build context                                                                                                                  51.0s
+ => => transferring context: 731.16MB                                                                                                                      51.0s
+ => [celery-beat  1/10] FROM docker.io/library/python:3.9-slim-bullseye@sha256:809a2221cf361fa474f2e391b1ca4a1dd1f0fec3fcafe3e039f3c24fa4a073d9            11.0s
+ => => resolve docker.io/library/python:3.9-slim-bullseye@sha256:809a2221cf361fa474f2e391b1ca4a1dd1f0fec3fcafe3e039f3c24fa4a073d9                           0.0s
+ => => sha256:b73154ee3bd0babb93f4abb82f2d9b76bf8e4414ce41ff9039916c4530adf5cb 11.05MB / 11.05MB                                                            5.2s
+ => => sha256:809a2221cf361fa474f2e391b1ca4a1dd1f0fec3fcafe3e039f3c24fa4a073d9 10.41kB / 10.41kB                                                            0.0s
+ => => sha256:76536676b48862b2f37d39cf6849b01f322eaa84d80fec3c354f24236025414e 1.94kB / 1.94kB                                                              0.0s
+ => => sha256:74453e4f5a12c7e878344862508585169a5265cb278b25bf4f76ddf0d916674d 6.90kB / 6.90kB                                                              0.0s
+ => => sha256:76956b537f14770ffd78afbe4f17016b2794c4b9b568325e8079089ea5c4e8cd 31.42MB / 31.42MB                                                            7.9s
+ => => sha256:d7589aea0a02373114f32ff5530359f634ea96c2a2ffb9daaf873b0572d4ad6a 1.08MB / 1.08MB                                                              0.5s
+ => => sha256:f0a5eaf0b1ca7b382e4a16ccdf8a549c8f8006094baaab9b1459788285297e65 232B / 232B                                                                  1.2s 
+ => => sha256:37645b1f1c491ac0021f1fc5e9cb23de595b7d9c5d5083086114cb5009bf96ae 2.77MB / 2.77MB                                                              2.9s 
+ => => extracting sha256:76956b537f14770ffd78afbe4f17016b2794c4b9b568325e8079089ea5c4e8cd                                                                   1.8s 
+ => => extracting sha256:d7589aea0a02373114f32ff5530359f634ea96c2a2ffb9daaf873b0572d4ad6a                                                                   0.1s 
+ => => extracting sha256:b73154ee3bd0babb93f4abb82f2d9b76bf8e4414ce41ff9039916c4530adf5cb                                                                   0.6s 
+ => => extracting sha256:f0a5eaf0b1ca7b382e4a16ccdf8a549c8f8006094baaab9b1459788285297e65                                                                   0.0s 
+ => => extracting sha256:37645b1f1c491ac0021f1fc5e9cb23de595b7d9c5d5083086114cb5009bf96ae                                                                   0.3s 
+ => CACHED [celery-beat  2/10] RUN apt-get update && apt-get install -y nodejs npm                                                                        112.4s 
+ => CACHED [celery-beat  3/10] RUN apt-get install -y build-essential libpq-dev wget gnupg2                                                                 2.4s 
+ => CACHED [celery-beat  4/10] RUN echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list     && wget   57.4s 
+ => CACHED [celery-beat  5/10] WORKDIR /envirotrack                                                                                                         0.0s 
+ => [web-app  6/10] COPY requirements.txt .                                                                                                                 0.0s 
+ => [web-app  7/10] RUN pip install -r requirements.txt                                                                                                    55.0s 
+ => [web-app  8/10] RUN pip install psycopg2-binary                                                                                                         0.7s 
+ => [web-app  9/10] COPY envirotrack /envirotrack                                                                                                           3.4s 
+ => [web-app 10/10] RUN useradd -ms /bin/bash service-user                                                                                                  0.3s 
+ => [web-app] exporting to image                                                                                                                            2.6s 
+ => => exporting layers                                                                                                                                     2.6s 
+ => => writing image sha256:bb09a477b09b8e4bd98c22b3a963ca71f24d686354c19b89231265e4bba25b55                                                                0.0s 
+ => => naming to docker.io/library/ueip-web-app                                                                                                             0.0s 
+ => [web-app-frontend internal] load build definition from Dockerfile.frontend                                                                              0.0s 
+ => => transferring dockerfile: 220B                                                                                                                        0.0s 
+ => [celery internal] load build definition from Dockerfile                                                                                                 0.0s 
+ => => transferring dockerfile: 2.52kB                                                                                                                      0.0s 
+ => [web-app-frontend internal] load metadata for docker.io/library/node:16-alpine                                                                          4.4s 
+ => [celery-beat internal] load build definition from Dockerfile                                                                                            0.0s 
+ => => transferring dockerfile: 2.52kB                                                                                                                      0.0s 
+ => [web-app-frontend auth] library/node:pull token for registry-1.docker.io                                                                                0.0s 
+ => [celery-beat internal] load .dockerignore                                                                                                               0.0s 
+ => => transferring context: 2B                                                                                                                             0.0s 
+ => [celery internal] load .dockerignore                                                                                                                    0.0s 
+ => => transferring context: 2B                                                                                                                             0.0s 
+ => [celery internal] load build context                                                                                                                    2.6s 
+ => => transferring context: 4.70MB                                                                                                                         2.5s 
+ => [celery-beat internal] load build context                                                                                                              29.3s 
+ => => transferring context: 731.16MB                                                                                                                      29.1s 
+ => [web-app-frontend internal] load .dockerignore                                                                                                          0.0s 
+ => => transferring context: 2B                                                                                                                             0.0s 
+ => [web-app-frontend 1/5] FROM docker.io/library/node:16-alpine@sha256:a1f9d027912b58a7c75be7716c97cfbc6d3099f3a97ed84aa490be9dee20e787                    0.0s 
+ => [web-app-frontend internal] load build context                                                                                                         33.8s 
+ => => transferring context: 722.52MB                                                                                                                      33.1s 
+ => CACHED [celery  6/10] COPY requirements.txt .                                                                                                           0.0s 
+ => CACHED [celery  7/10] RUN pip install -r requirements.txt                                                                                               0.0s 
+ => CACHED [celery  8/10] RUN pip install psycopg2-binary                                                                                                   0.0s 
+ => CACHED [celery  9/10] COPY envirotrack /envirotrack                                                                                                     0.0s 
+ => CACHED [celery 10/10] RUN useradd -ms /bin/bash service-user                                                                                            0.0s 
+ => [celery] exporting to image                                                                                                                             0.1s 
+ => => exporting layers                                                                                                                                     0.0s 
+ => => writing image sha256:9972da84d9e4107f810fdbf9174500eecd78a3f422c28d31c6293ba26af7fcaf                                                                0.0s 
+ => => naming to docker.io/library/ueip-celery                                                                                                              0.0s 
+ => CACHED [celery-beat  6/10] COPY requirements.txt .                                                                                                      0.0s 
+ => CACHED [celery-beat  7/10] RUN pip install -r requirements.txt                                                                                          0.0s 
+ => CACHED [celery-beat  8/10] RUN pip install psycopg2-binary                                                                                              0.0s 
+ => CACHED [celery-beat  9/10] COPY envirotrack /envirotrack                                                                                                0.0s 
+ => CACHED [celery-beat 10/10] RUN useradd -ms /bin/bash service-user                                                                                       0.0s 
+ => [celery-beat] exporting to image                                                                                                                        0.1s 
+ => => exporting layers                                                                                                                                     0.0s 
+ => => writing image sha256:98a4f9e77f34ec35e284ce128cd3fd954a7fa64ae2f58077a13a9c6638dff8bc                                                                0.0s 
+ => => naming to docker.io/library/ueip-celery-beat                                                                                                         0.0s 
+ => CACHED [web-app-frontend 2/5] WORKDIR /frontend                                                                                                         0.0s 
+ => CACHED [web-app-frontend 3/5] COPY package*.json ./                                                                                                     0.0s 
+ => CACHED [web-app-frontend 4/5] RUN npm install                                                                                                           0.0s 
+ => [web-app-frontend 5/5] COPY . .                                                                                                                        13.4s 
+ => [web-app-frontend] exporting to image                                                                                                                   5.6s 
+ => => exporting layers                                                                                                                                     5.6s 
+ => => writing image sha256:f6a8aa1f6fd3ba85ddad66904830b751d363027e3efdbf0b17422a936c2ea9da                                                                0.0s 
+ => => naming to docker.io/library/ueip-web-app-frontend                                                                                                    0.0s 
+time="2024-07-23T10:44:48+05:00" level=warning msg="Found orphan containers ([ueip-worker-1 ueip-flower-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+[+] Running 7/7
+ ✔ Container ueip-redis-1             Created                                                                                                               0.0s 
+ ✔ Container ueip-database-1          Recreated                                                                                                             0.3s 
+ ✔ Container ueip-web-app-1           Recreated                                                                                                             0.2s 
+ ✔ Container ueip-celery-beat-1       Recreated                                                                                                             0.2s 
+ ✔ Container ueip-web-app-frontend-1  Recreated                                                                                                             0.2s 
+ ✔ Container ueip-celery-1            Recreated                                                                                                             0.2s 
+ ✔ Container ueip-nginx-1             Recreated                                                                                                             0.2s 
+Attaching to celery-1, celery-beat-1, database-1, nginx-1, redis-1, web-app-1, web-app-frontend-1
+redis-1             | 1:C 23 Jul 2024 05:44:56.514 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis-1             | 1:C 23 Jul 2024 05:44:56.514 # Redis version=7.0.5, bits=64, commit=00000000, modified=0, pid=1, just started
+redis-1             | 1:C 23 Jul 2024 05:44:56.514 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis-1             | 1:M 23 Jul 2024 05:44:56.515 * monotonic clock: POSIX clock_gettime
+redis-1             | 1:M 23 Jul 2024 05:44:56.516 * Running mode=standalone, port=6379.
+redis-1             | 1:M 23 Jul 2024 05:44:56.516 # Server initialized
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * Loading RDB produced by version 7.0.5
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * RDB age 3179571 seconds
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * RDB memory usage when created 1.37 Mb
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * Done loading RDB, keys loaded: 3, keys expired: 4.
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * DB loaded from disk: 0.001 seconds
+redis-1             | 1:M 23 Jul 2024 05:44:56.518 * Ready to accept connections
+database-1          | 
+database-1          | PostgreSQL Database directory appears to contain a database; Skipping initialization
+database-1          | 
+database-1          | 2024-07-23 05:44:56.878 UTC [1] LOG:  starting PostgreSQL 16.3 (Debian 16.3-1.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+database-1          | 2024-07-23 05:44:56.962 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+database-1          | 2024-07-23 05:44:56.963 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+database-1          | 2024-07-23 05:44:56.968 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+database-1          | 2024-07-23 05:44:56.984 UTC [29] LOG:  database system was shut down at 2024-06-16 10:32:05 UTC
+database-1          | 2024-07-23 05:44:57.014 UTC [1] LOG:  database system is ready to accept connections
+web-app-1           | System check identified some issues:
+web-app-1           | 
+web-app-1           | WARNINGS:
+web-app-1           | backend.BuildingEnviromentalParameters.measurement_instruments: (fields.W340) null has no effect on ManyToManyField.
+web-app-1           | backend.EnviromentalParameters.measurement_instruments: (fields.W340) null has no effect on ManyToManyField.
+nginx-1             | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+nginx-1             | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+nginx-1             | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+nginx-1             | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+nginx-1             | 10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+nginx-1             | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+nginx-1             | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+nginx-1             | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+nginx-1             | /docker-entrypoint.sh: Configuration complete; ready for start up
+web-app-1           | Operations to perform:
+web-app-1           |   Apply all migrations: admin, auth, backend, contenttypes, sessions, token_blacklist
+web-app-1           | Running migrations:
+web-app-1           |   No migrations to apply.
+web-app-frontend-1  | 
+web-app-frontend-1  | > frontend@0.1.0 start
+web-app-frontend-1  | > react-scripts start
+web-app-frontend-1  | 
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [DEBUG] Current configuration:
+web-app-1           |   config: ./gunicorn.conf.py
+web-app-1           |   wsgi_app: None
+web-app-1           |   bind: ['0.0.0.0:8000']
+web-app-1           |   backlog: 2048
+web-app-1           |   workers: 1
+web-app-1           |   worker_class: sync
+web-app-1           |   threads: 1
+web-app-1           |   worker_connections: 1000
+web-app-1           |   max_requests: 0
+web-app-1           |   max_requests_jitter: 0
+web-app-1           |   timeout: 30
+web-app-1           |   graceful_timeout: 30
+web-app-1           |   keepalive: 2
+web-app-1           |   limit_request_line: 4094
+web-app-1           |   limit_request_fields: 100
+web-app-1           |   limit_request_field_size: 8190
+web-app-1           |   reload: False
+web-app-1           |   reload_engine: auto
+web-app-1           |   reload_extra_files: []
+web-app-1           |   spew: False
+web-app-1           |   check_config: False
+web-app-1           |   print_config: False
+web-app-1           |   preload_app: False
+web-app-1           |   sendfile: None
+web-app-1           |   reuse_port: False
+web-app-1           |   chdir: /envirotrack
+web-app-1           |   daemon: False
+web-app-1           |   raw_env: []
+web-app-1           |   pidfile: None
+web-app-1           |   worker_tmp_dir: None
+web-app-1           |   user: 1000
+web-app-1           |   group: 1000
+web-app-1           |   umask: 0
+web-app-1           |   initgroups: False
+web-app-1           |   tmp_upload_dir: None
+web-app-1           |   secure_scheme_headers: {'X-FORWARDED-PROTOCOL': 'ssl', 'X-FORWARDED-PROTO': 'https', 'X-FORWARDED-SSL': 'on'}
+web-app-1           |   forwarded_allow_ips: ['127.0.0.1']
+web-app-1           |   accesslog: -
+web-app-1           |   disable_redirect_access_to_syslog: False
+web-app-1           |   access_log_format: %(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
+web-app-1           |   errorlog: -
+web-app-1           |   loglevel: debug
+web-app-1           |   capture_output: False
+web-app-1           |   logger_class: gunicorn.glogging.Logger
+web-app-1           |   logconfig: None
+web-app-1           |   logconfig_dict: {}
+web-app-1           |   logconfig_json: None
+web-app-1           |   syslog_addr: udp://localhost:514
+web-app-1           |   syslog: False
+web-app-1           |   syslog_prefix: None
+web-app-1           |   syslog_facility: user
+web-app-1           |   enable_stdio_inheritance: False
+web-app-1           |   statsd_host: None
+web-app-1           |   dogstatsd_tags:
+web-app-1           |   statsd_prefix:
+web-app-1           |   proc_name: None
+web-app-1           |   default_proc_name: envirotrack.wsgi:application
+web-app-1           |   pythonpath: None
+web-app-1           |   paste: None
+web-app-1           |   on_starting: <function OnStarting.on_starting at 0x7ff5db38aaf0>
+web-app-1           |   on_reload: <function OnReload.on_reload at 0x7ff5db38ac10>
+web-app-1           |   when_ready: <function WhenReady.when_ready at 0x7ff5db38ad30>
+web-app-1           |   pre_fork: <function Prefork.pre_fork at 0x7ff5db38ae50>
+web-app-1           |   post_fork: <function Postfork.post_fork at 0x7ff5db38af70>
+web-app-1           |   post_worker_init: <function PostWorkerInit.post_worker_init at 0x7ff5dbb330d0>
+web-app-1           |   worker_int: <function WorkerInt.worker_int at 0x7ff5dbb331f0>
+web-app-1           |   worker_abort: <function WorkerAbort.worker_abort at 0x7ff5dbb33310>
+web-app-1           |   pre_exec: <function PreExec.pre_exec at 0x7ff5dbb33430>
+web-app-1           |   pre_request: <function PreRequest.pre_request at 0x7ff5dbb33550>
+web-app-1           |   post_request: <function PostRequest.post_request at 0x7ff5dbb335e0>
+web-app-1           |   child_exit: <function ChildExit.child_exit at 0x7ff5dbb33700>
+web-app-1           |   worker_exit: <function WorkerExit.worker_exit at 0x7ff5dbb33820>
+web-app-1           |   nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7ff5dbb33940>
+web-app-1           |   on_exit: <function OnExit.on_exit at 0x7ff5dbb33a60>
+web-app-1           |   ssl_context: <function NewSSLContext.ssl_context at 0x7ff5dbb33b80>
+web-app-1           |   proxy_protocol: False
+web-app-1           |   proxy_allow_ips: ['127.0.0.1']
+web-app-1           |   keyfile: None
+web-app-1           |   certfile: None
+web-app-1           |   ssl_version: 2
+web-app-1           |   cert_reqs: 0
+web-app-1           |   ca_certs: None
+web-app-1           |   suppress_ragged_eofs: True
+web-app-1           |   do_handshake_on_connect: False
+web-app-1           |   ciphers: None
+web-app-1           |   raw_paste_global_conf: []
+web-app-1           |   strip_header_spaces: False
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [INFO] Starting gunicorn 21.2.0
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [DEBUG] Arbiter booted
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [INFO] Listening at: http://0.0.0.0:8000 (20)
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [INFO] Using worker: sync
+web-app-1           | [2024-07-23 05:45:00 +0000] [21] [INFO] Booting worker with pid: 21
+web-app-1           | [2024-07-23 05:45:00 +0000] [20] [DEBUG] 1 workers
+web-app-frontend-1  | Browserslist: caniuse-lite is outdated. Please run:
+web-app-frontend-1  |   npx update-browserslist-db@latest
+web-app-frontend-1  |   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+web-app-frontend-1  | (node:30) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use 
+the 'setupMiddlewares' option.
+web-app-frontend-1  | (Use `node --trace-deprecation ...` to show where the warning was created)
+web-app-frontend-1  | (node:30) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+web-app-frontend-1  | Starting the development server...
+web-app-frontend-1  | 
+web-app-frontend-1  | One of your dependencies, babel-preset-react-app, is importing the
+web-app-frontend-1  | "@babel/plugin-proposal-private-property-in-object" package without
+web-app-frontend-1  | declaring it in its dependencies. This is currently working because
+web-app-frontend-1  | "@babel/plugin-proposal-private-property-in-object" is already in your
+web-app-frontend-1  | node_modules folder for unrelated reasons, but it may break at any time.
+web-app-frontend-1  | 
+web-app-frontend-1  | babel-preset-react-app is part of the create-react-app project, which
+web-app-frontend-1  | is not maintianed anymore. It is thus unlikely that this bug will
+web-app-frontend-1  | ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
+web-app-frontend-1  | your devDependencies to work around this error. This will make this message
+web-app-frontend-1  | go away.
+web-app-frontend-1  | 
+celery-beat-1       | celery beat v5.2.3 (dawn-chorus) is starting.
+celery-beat-1       | __    -    ... __   -        _
+celery-1            | 
+celery-beat-1       | LocalTime -> 2024-07-23 05:45:09
+celery-1            |  -------------- celery@b6b6dc10ee0a v5.2.3 (dawn-chorus)
+celery-beat-1       | Configuration ->
+celery-1            | --- ***** -----
+celery-beat-1       |     . broker -> redis://redis:6379/0
+celery-1            | -- ******* ---- Linux-5.15.146.1-microsoft-standard-WSL2-x86_64-with-glibc2.31 2024-07-23 05:45:09
+celery-beat-1       |     . loader -> celery.loaders.app.AppLoader
+celery-1            | - *** --- * ---
+celery-beat-1       |     . scheduler -> celery.beat.PersistentScheduler
+celery-1            | - ** ---------- [config]
+celery-beat-1       |     . db -> celerybeat-schedule
+celery-1            | - ** ---------- .> app:         envirotrack:0x7fa5f1db2d90
+celery-beat-1       |     . logfile -> [stderr]@%INFO
+celery-1            | - ** ---------- .> transport:   redis://redis:6379/0
+celery-beat-1       |     . maxinterval -> 5.00 minutes (300s)
+celery-1            | - ** ---------- .> results:     disabled://
+celery-beat-1       | [2024-07-23 05:45:09,146: INFO/MainProcess] beat: Starting...
+celery-1            | - *** --- * --- .> concurrency: 12 (prefork)
+celery-beat-1       | [2024-07-23 05:45:09,162: INFO/MainProcess] Scheduler: Sending due task backup-db-every-30-minutes (backend.tasks.backup_db)
+celery-1            | -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+celery-1            | --- ***** -----
+celery-1            |  -------------- [queues]
+celery-1            |                 .> celery           exchange=celery(direct) key=celery
+celery-1            | 
+celery-1            | 
+celery-1            | [tasks]
+celery-1            |   . backend.tasks.backup_db
+celery-1            |   . envirotrack.celery.debug_task
+celery-1            | 
+web-app-frontend-1  | Compiled with warnings.
+web-app-frontend-1  | 
+web-app-frontend-1  | [eslint]
+web-app-frontend-1  | src/components/MeasuringInstrumentsForm.js
+web-app-frontend-1  |   Line 44:6:  React Hook useEffect has a missing dependency: 'calculateNextCalibrationDate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/components/MeasuringInstrumentsList.js
+web-app-frontend-1  |   Line 25:6:  React Hook useEffect has a missing dependency: 'fetchMeasuringInstruments'. Either include it or remove the dependency array 
+ react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/context/AuthContext.js
+web-app-frontend-1  |   Line 88:6:  React Hook useEffect has a missing dependency: 'updateToken'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | Search for the keywords to learn more about each warning.
+web-app-frontend-1  | To ignore, add // eslint-disable-next-line to the line before.
+web-app-frontend-1  | 
+web-app-frontend-1  | WARNING in [eslint]
+web-app-frontend-1  | src/components/MeasuringInstrumentsForm.js
+web-app-frontend-1  |   Line 44:6:  React Hook useEffect has a missing dependency: 'calculateNextCalibrationDate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/components/MeasuringInstrumentsList.js
+web-app-frontend-1  |   Line 25:6:  React Hook useEffect has a missing dependency: 'fetchMeasuringInstruments'. Either include it or remove the dependency array 
+ react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/context/AuthContext.js
+web-app-frontend-1  |   Line 88:6:  React Hook useEffect has a missing dependency: 'updateToken'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | webpack compiled with 1 warning
+web-app-frontend-1  | Compiling...
+celery-1            | [2024-07-23 05:45:09,775: INFO/MainProcess] Connected to redis://redis:6379/0
+celery-1            | [2024-07-23 05:45:09,777: INFO/MainProcess] mingle: searching for neighbors
+web-app-frontend-1  | Compiled with warnings.
+web-app-frontend-1  | 
+web-app-frontend-1  | [eslint]
+web-app-frontend-1  | src/components/MeasuringInstrumentsForm.js
+web-app-frontend-1  |   Line 44:6:  React Hook useEffect has a missing dependency: 'calculateNextCalibrationDate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/components/MeasuringInstrumentsList.js
+web-app-frontend-1  |   Line 25:6:  React Hook useEffect has a missing dependency: 'fetchMeasuringInstruments'. Either include it or remove the dependency array 
+ react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/context/AuthContext.js
+web-app-frontend-1  |   Line 88:6:  React Hook useEffect has a missing dependency: 'updateToken'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | Search for the keywords to learn more about each warning.
+web-app-frontend-1  | To ignore, add // eslint-disable-next-line to the line before.
+web-app-frontend-1  | 
+web-app-frontend-1  | WARNING in [eslint]
+web-app-frontend-1  | src/components/MeasuringInstrumentsForm.js
+web-app-frontend-1  |   Line 44:6:  React Hook useEffect has a missing dependency: 'calculateNextCalibrationDate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/components/MeasuringInstrumentsList.js
+web-app-frontend-1  |   Line 25:6:  React Hook useEffect has a missing dependency: 'fetchMeasuringInstruments'. Either include it or remove the dependency array 
+ react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | src/context/AuthContext.js
+web-app-frontend-1  |   Line 88:6:  React Hook useEffect has a missing dependency: 'updateToken'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+web-app-frontend-1  | 
+web-app-frontend-1  | webpack compiled with 1 warning
+celery-1            | [2024-07-23 05:45:10,784: INFO/MainProcess] mingle: all alone
+celery-1            | [2024-07-23 05:45:10,795: INFO/MainProcess] celery@b6b6dc10ee0a ready.
+celery-1            | [2024-07-23 05:45:10,797: INFO/MainProcess] Task backend.tasks.backup_db[1c421d40-9505-4b23-94e8-869ac5a74be2] received
+celery-1            | [2024-07-23 05:45:10,798: WARNING/ForkPoolWorker-7] Running backup_db task
+celery-1            | [2024-07-23 05:45:11,044: INFO/ForkPoolWorker-7] Task backend.tasks.backup_db[1c421d40-9505-4b23-94e8-869ac5a74be2] succeeded in 0.2454152249993058s: 'Backup /backups/dbname_2024-07-23_05-45-10.sql.gz created'
+database-1          | 2024-07-23 05:49:56.972 UTC [27] LOG:  checkpoint starting: time
+database-1          | 2024-07-23 05:49:57.083 UTC [27] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.104 s, sync=0.003 s, total=0.112 s; sync files=3, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/2898790, redo lsn=0/2898758
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET / HTTP/1.1" 200 883 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET /static/css/main.68ce56b9.css HTTP/1.1" 200 15544 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET /static/js/main.b01f0a9d.js HTTP/1.1" 200 351876 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET /icons8-favicon.png HTTP/1.1" 200 1344 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; 
+Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET /manifest.json HTTP/1.1" 200 517 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:11 +0000] "GET /logo192.png HTTP/1.1" 200 5347 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; 
+x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:16 +0000] "GET / HTTP/1.1" 304 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:50:17 +0000] "GET / HTTP/1.1" 304 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:50:41 +0000] [20] [CRITICAL] WORKER TIMEOUT (pid:21)
+web-app-1           | [2024-07-23 05:50:41 +0000] [21] [INFO] Worker exiting (pid: 21)
+web-app-1           | [2024-07-23 05:50:41 +0000] [20] [ERROR] Worker (pid:21) exited with code 1
+web-app-1           | [2024-07-23 05:50:41 +0000] [20] [ERROR] Worker (pid:21) exited with code 1.
+web-app-1           | [2024-07-23 05:50:41 +0000] [22] [INFO] Booting worker with pid: 22
+web-app-1           | [2024-07-23 05:50:41 +0000] [22] [DEBUG] OPTIONS /api/token/refresh/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:50:41 +0000] "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:50:41 +0000] [22] [DEBUG] OPTIONS /api/token/refresh/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:50:41 +0000] "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:50:41 +0000] [22] [DEBUG] OPTIONS /api/token/refresh/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:50:41 +0000] "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:50:41 +0000] [22] [DEBUG] POST /api/token/refresh/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:50:41 +0000] "POST /api/token/refresh/ HTTP/1.1" 200 555 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; 
+Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:04 +0000] [22] [DEBUG] GET /api/responsibles/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:04 +0000] "GET /api/responsibles/ HTTP/1.1" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:04 +0000] "GET /api/responsibles/ HTTP/1.0" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:04 +0000] [22] [DEBUG] GET /api/filterParameters/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:04 +0000] "GET /api/filterParameters/ HTTP/1.1" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:04 +0000] "GET /api/filterParameters/ HTTP/1.0" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:04 +0000] [22] [DEBUG] GET /api/rooms/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:04 +0000] "GET /api/rooms/ HTTP/1.1" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:04 +0000] "GET /api/rooms/ HTTP/1.0" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:09 +0000] [22] [DEBUG] GET /api/responsibles/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:09 +0000] "GET /api/responsibles/ HTTP/1.0" 200 155 "http://localhost/buildings-parameters" "Mozilla/5.0 
+(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:09 +0000] "GET /api/responsibles/ HTTP/1.1" 200 155 "http://localhost/buildings-parameters" "Mozilla/5.0 
+(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:09 +0000] [22] [DEBUG] GET /api/filterBuildingParameters/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:09 +0000] "GET /api/filterBuildingParameters/ HTTP/1.0" 200 1749 "http://localhost/buildings-parameters" 
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:09 +0000] "GET /api/filterBuildingParameters/ HTTP/1.1" 200 1749 "http://localhost/buildings-parameters" 
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:09 +0000] [22] [DEBUG] GET /api/buildings/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:09 +0000] "GET /api/buildings/ HTTP/1.0" 200 294 "http://localhost/buildings-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:09 +0000] "GET /api/buildings/ HTTP/1.1" 200 294 "http://localhost/buildings-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:10 +0000] [22] [DEBUG] GET /api/responsibles/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:10 +0000] "GET /api/responsibles/ HTTP/1.0" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:10 +0000] "GET /api/responsibles/ HTTP/1.1" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:10 +0000] [22] [DEBUG] GET /api/filterParameters/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:10 +0000] "GET /api/filterParameters/ HTTP/1.0" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:10 +0000] "GET /api/filterParameters/ HTTP/1.1" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:10 +0000] [22] [DEBUG] GET /api/rooms/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:10 +0000] "GET /api/rooms/ HTTP/1.1" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:10 +0000] "GET /api/rooms/ HTTP/1.0" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:14 +0000] [22] [DEBUG] OPTIONS /api/token/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:51:14 +0000] "OPTIONS /api/token/ HTTP/1.1" 200 0 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; 
+x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:14 +0000] [22] [DEBUG] POST /api/token/
+web-app-1           | 172.20.0.1 - - [23/Jul/2024:05:51:14 +0000] "POST /api/token/ HTTP/1.1" 200 555 "http://localhost/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:14 +0000] [22] [DEBUG] GET /api/responsibles/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:14 +0000] "GET /api/responsibles/ HTTP/1.0" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:14 +0000] "GET /api/responsibles/ HTTP/1.1" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:14 +0000] [22] [DEBUG] GET /api/filterParameters/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:14 +0000] "GET /api/filterParameters/ HTTP/1.0" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:14 +0000] "GET /api/filterParameters/ HTTP/1.1" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:14 +0000] [22] [DEBUG] GET /api/rooms/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:14 +0000] "GET /api/rooms/ HTTP/1.0" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:14 +0000] "GET /api/rooms/ HTTP/1.1" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:15 +0000] [22] [DEBUG] GET /api/current_user/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:15 +0000] "GET /api/current_user/ HTTP/1.1" 200 153 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:15 +0000] "GET /api/current_user/ HTTP/1.0" 200 153 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:15 +0000] [22] [DEBUG] GET /api/parameters/6/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:15 +0000] "GET /api/parameters/6/ HTTP/1.0" 200 1122 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:15 +0000] "GET /api/parameters/6/ HTTP/1.1" 200 1122 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:15 +0000] [22] [DEBUG] GET /api/measurement_instrument_types/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:15 +0000] "GET /api/measurement_instrument_types/ HTTP/1.1" 200 1109 "http://localhost/room-parameter/6" 
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:15 +0000] "GET /api/measurement_instrument_types/ HTTP/1.0" 200 1109 "http://localhost/room-parameter/6" 
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:15 +0000] [22] [DEBUG] GET /api/rooms/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:15 +0000] "GET /api/rooms/ HTTP/1.1" 200 299 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:15 +0000] "GET /api/rooms/ HTTP/1.0" 200 299 "http://localhost/room-parameter/6" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:17 +0000] [22] [DEBUG] GET /api/responsibles/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:17 +0000] "GET /api/responsibles/ HTTP/1.1" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:17 +0000] "GET /api/responsibles/ HTTP/1.0" 200 155 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:17 +0000] [22] [DEBUG] GET /api/filterParameters/
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:17 +0000] "GET /api/filterParameters/ HTTP/1.0" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:17 +0000] "GET /api/filterParameters/ HTTP/1.1" 200 5903 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | [2024-07-23 05:51:17 +0000] [22] [DEBUG] GET /api/rooms/
+nginx-1             | 172.20.0.1 - - [23/Jul/2024:05:51:17 +0000] "GET /api/rooms/ HTTP/1.1" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+web-app-1           | 172.20.0.8 - - [23/Jul/2024:05:51:17 +0000] "GET /api/rooms/ HTTP/1.0" 200 299 "http://localhost/rooms-parameters" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+
+
