@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { saveAs } from 'file-saver';
 import { FiDownload, FiInbox, FiPlus } from 'react-icons/fi';
 import AuthContext from '../context/AuthContext';
 import usePersistentFilters, { filtersToQuery } from '../hooks/usePersistentFilters';
+import ExportDialog from './ExportDialog';
 import FilterPanel from './FilterPanel';
 import SubHeader from './SubHeader';
 import './RecordCard.css';
@@ -13,7 +13,7 @@ const RecordsPage = ({ scope, title, endpoint, exportUrl, exportName, newPath, I
   const { filters, setFilters, resetFilters, ready, responsibleId, saveState } = usePersistentFilters(scope);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const entityKey = scope === 'buildings' ? 'buildings' : 'rooms';
   const query = filtersToQuery(filters, entityKey);
@@ -49,16 +49,6 @@ const RecordsPage = ({ scope, title, endpoint, exportUrl, exportName, newPath, I
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpoint, query, ready]);
 
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const response = await fetch(exportUrl);
-      saveAs(await response.blob(), exportName());
-    } finally {
-      setExporting(false);
-    }
-  };
-
   return (
     <>
       <SubHeader />
@@ -67,8 +57,8 @@ const RecordsPage = ({ scope, title, endpoint, exportUrl, exportName, newPath, I
           <h1 className='page-toolbar__title'>{title}</h1>
           <div className='page-toolbar__actions'>
             {user && (
-              <button type='button' className='btn btn--secondary' onClick={handleExport} disabled={exporting}>
-                <FiDownload /> {exporting ? 'Готовим файл…' : 'Выгрузить в Excel'}
+              <button type='button' className='btn btn--secondary' onClick={() => setExportOpen(true)}>
+                <FiDownload /> Выгрузить в Excel
               </button>
             )}
             {user && (
@@ -108,6 +98,18 @@ const RecordsPage = ({ scope, title, endpoint, exportUrl, exportName, newPath, I
               <ItemComponent key={record.id} parameter={record} />
             ))}
           </div>
+        )}
+
+        {exportOpen && (
+          <ExportDialog
+            scope={scope}
+            title={title}
+            exportUrl={exportUrl}
+            fallbackName={exportName}
+            initialFilters={filters}
+            responsibleId={responsibleId}
+            onClose={() => setExportOpen(false)}
+          />
         )}
       </main>
     </>

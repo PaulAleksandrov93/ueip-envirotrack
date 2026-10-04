@@ -79,7 +79,7 @@ const useFilterOptions = (scope) => {
 
 const flatOptions = (options) => options.flatMap((o) => (o.options ? o.options : [o]));
 
-const FilterPanel = ({ scope, filters, onChange, onReset, responsibleId, saveState, total, loading }) => {
+const FilterPanel = ({ scope, filters, onChange, onReset, responsibleId, saveState, total, loading, embedded = false }) => {
   const { user } = useContext(AuthContext);
   const entityKey = scope === 'buildings' ? 'buildings' : 'rooms';
   const { responsibleOptions, entityOptions } = useFilterOptions(scope);
@@ -101,7 +101,7 @@ const FilterPanel = ({ scope, filters, onChange, onReset, responsibleId, saveSta
   const StatusIcon = status?.icon;
 
   return (
-    <section className='filter-panel card'>
+    <section className={`filter-panel ${embedded ? 'filter-panel--embedded' : 'card'}`}>
       <div className='filter-panel__row'>
         {user && responsibleId && (
           <div className='form-field filter-panel__scope'>
@@ -197,6 +197,7 @@ const FilterPanel = ({ scope, filters, onChange, onReset, responsibleId, saveSta
           ))}
         </div>
 
+        {!embedded && (
         <div className='filter-panel__meta'>
           <span className='filter-panel__total'>
             {loading ? 'Загрузка…' : `Найдено записей: ${total}`}
@@ -212,6 +213,7 @@ const FilterPanel = ({ scope, filters, onChange, onReset, responsibleId, saveSta
             </button>
           )}
         </div>
+        )}
       </div>
     </section>
   );

@@ -1,9 +1,14 @@
 import datetime
+from io import BytesIO
 
 from django.contrib.auth.models import User
+from openpyxl import load_workbook
 from rest_framework.test import APITestCase
 
-from backend.models import Building, EnviromentalParameters, Responsible, Room, UserFilterPreference
+from backend.models import (
+    Building, BuildingEnviromentalParameters, BuildingParameterSet, EnviromentalParameters,
+    ParameterSet, Responsible, Room, UserFilterPreference,
+)
 
 
 class RoomFilterTests(APITestCase):
@@ -91,3 +96,87 @@ class FilterPreferenceTests(APITestCase):
 
         self.assertEqual(self.client.delete('/api/filter_preferences/buildings/').status_code, 204)
         self.assertIsNone(self.client.get('/api/filter_preferences/buildings/').json()['filters'])
+
+
+class ExcelExportTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user('ivanov', password='pass12345')
+        cls.me = Responsible.objects.create(user=cls.user, last_name='Иванов', first_name='Сергей', patronymic='П')
+        cls.other = Responsible.objects.create(last_name='Петрова', first_name='Анна', patronymic='В')
+
+        cls.b1 = Building.objects.create(building_number='1', voltage_min=207, voltage_max=253)
+        cls.b7 = Building.objects.create(building_number='7', voltage_min=207, voltage_max=253)
+        cls.room = Room.objects.create(building=cls.b1, room_number='101', humidity_min=30, humidity_max=60)
+        cls.room.responsible_persons.add(cls.me)
+        cls.other_room = Room.objects.create(building=cls.b7, room_number='101')
+
+        def room_record(room, who, day, humidity):
+            record = EnviromentalParameters.objects.create(room=room, responsible=who, created_at=datetime.date(2026, 10, day))
+            record.parameter_sets.add(ParameterSet.objects.create(
+                temperature_celsius=21, humidity_percentage=humidity, pressure_kpa=100, pressure_mmhg=750, time='09:00',
+            ))
+            return record
+
+        room_record(cls.room, cls.me, 1, 45.5)
+        room_record(cls.room, cls.me, 3, 65.0)
+        room_record(cls.other_room, cls.other, 2, 40.0)
+
+        record = BuildingEnviromentalParameters.objects.create(building=cls.b1, responsible=cls.me, created_at=datetime.date(2026, 10, 2))
+        record.parameter_sets.add(BuildingParameterSet.objects.create(
+            voltage=260, frequency=50, time='10:00', waveform_shape='искажённая', harmonic_coefficient=4.3,
+        ))
+        BuildingEnviromentalParameters.objects.create(building=cls.b7, responsible=cls.other, created_at=datetime.date(2026, 10, 2))
+
+    def sheet(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('spreadsheetml', response['Content-Type'])
+        return load_workbook(BytesIO(response.content)).active
+
+    @staticmethod
+    def data_rows(ws):
+        return [row for row in ws.iter_rows(min_row=6, values_only=True) if any(cell is not None for cell in row)]
+
+    def test_rooms_export_applies_filters_and_marks_violations(self):
+        response = self.client.get('/api/export-parameters/', {
+            'rooms': str(self.room.id), 'start_date': '2026-10-01', 'end_date': '2026-10-31',
+        })
+        ws = self.sheet(response)
+        rows = self.data_rows(ws)
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({(r[1], r[2]) for r in rows}, {('1', '101')})
+        self.assertIn('с 01.10.2026 по 31.10.2026', ws['A2'].value)
+        self.assertIn('101 (зд. 1)', ws['A2'].value)
+
+        newest = rows[0]
+        self.assertEqual(newest[0], '03.10.2026')
+        self.assertEqual(newest[7], 65.0)
+        self.assertEqual(newest[13], 'влажность')
+        self.assertEqual(ws.cell(row=6, column=8).font.color.rgb[-6:], 'C62F2F')
+        self.assertIn("filename*=UTF-8''", response['Content-Disposition'])
+
+    def test_rooms_export_mine_and_responsible(self):
+        self.client.force_authenticate(self.user)
+        mine = self.data_rows(self.sheet(self.client.get('/api/export-parameters/', {'mine': '1'})))
+        self.assertEqual({r[4] for r in mine}, {'Иванов Сергей П'})
+
+        theirs = self.data_rows(self.sheet(self.client.get('/api/export-parameters/', {'responsible': str(self.other.id)})))
+        self.assertEqual([(r[1], r[4]) for r in theirs], [('7', 'Петрова Анна В')])
+
+    def test_single_date_no_longer_crashes(self):
+        rows = self.data_rows(self.sheet(self.client.get('/api/export-parameters/', {'date': '2026-10-02'})))
+        self.assertEqual(len(rows), 1)
+
+    def test_buildings_export_has_waveform_and_harmonics(self):
+        ws = self.sheet(self.client.get('/api/export-parameters-buildings/', {'buildings': str(self.b1.id)}))
+        rows = self.data_rows(ws)
+        self.assertEqual(len(rows), 1)
+        date, building, person, time, voltage, frequency, waveform, harmonic, violations, _ = rows[0]
+        self.assertEqual((building, voltage, waveform, harmonic), ('1', 260.0, 'искажённая', 4.3))
+        self.assertEqual(violations, 'напряжение, форма кривой')
+
+    def test_record_without_sets_still_listed(self):
+        rows = self.data_rows(self.sheet(self.client.get('/api/export-parameters-buildings/', {'buildings': str(self.b7.id)})))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][1], '7')

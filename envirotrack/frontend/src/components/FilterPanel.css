@@ -146,3 +146,17 @@
   border-color: var(--c-brand);
   color: #fff;
 }
+
+.filter-panel--embedded {
+  margin: 0;
+  padding: 0;
+}
+
+.filter-panel--embedded .filter-panel__row {
+  flex-wrap: wrap;
+}
+
+.filter-panel--embedded .filter-panel__select,
+.filter-panel--embedded .filter-panel__select--wide {
+  flex-basis: 100%;
+}
