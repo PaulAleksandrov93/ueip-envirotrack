@@ -12,6 +12,7 @@ const LoginPage = () => {
   return (
     <div className="login-page">
       <form className="login-form" onSubmit={loginUser}>
+        <h1 className="login-title">Вход в журнал</h1>
         <label htmlFor="username">
            <FaUser /> Имя пользователя:
         </label>

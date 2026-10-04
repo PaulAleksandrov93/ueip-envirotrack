@@ -1,6 +1,7 @@
 // MeasuringInstrumentsList.js
 
 import React, { useState, useEffect, useContext } from 'react';
+import { FiPlus } from 'react-icons/fi';
 import SubHeader from '../components/SubHeader';
 import MeasuringInstrumentForm from './MeasuringInstrumentsForm';
 import AuthContext from '../context/AuthContext';
@@ -8,7 +9,6 @@ import './MeasuringInstrumentsList.css';
 
 const MeasuringInstrumentsList = () => {
   const { authTokens } = useContext(AuthContext);
-  const [setActiveComponent] = useState('measuringInstruments');
   const [measuringInstruments, setMeasuringInstruments] = useState([]);
   const [searchParams] = useState({
     registration_number: '',
@@ -70,51 +70,63 @@ const MeasuringInstrumentsList = () => {
   };
 
   return (
-    <div className="standard-list-container">
-      <SubHeader setActiveComponent={setActiveComponent} />
-      <h2 className="standard-list-title">Список СИ для контроля параметров</h2>
-      <div className="standard-header">
-        <span>Регистрационный номер СИ</span>
-        <span>Название</span>
-        <span>Тип</span>
-        <span>Заводской номер</span>
-        <span>Метрологические характеристики</span>
-        <span>Дата поверки</span>
-        <span>Межповерочный интервал</span>
-        <span>Дата следующей поверки</span>
-        <span>Год выпуска СИ</span>
-        <span>Годен/Брак</span>
+    <>
+      <SubHeader />
+      <main className="page">
+      <div className="page-toolbar">
+        <h1 className="page-toolbar__title">
+          Средства измерений <span className="page-toolbar__count">· {measuringInstruments.length}</span>
+        </h1>
+        <div className="page-toolbar__actions">
+          {authTokens && (
+            <button type="button" onClick={handleCreateMeasuringInstrument} className="btn btn--primary">
+              <FiPlus /> Добавить СИ
+            </button>
+          )}
+        </div>
       </div>
-      <div className="search-container">
-        {/* Поля для фильтрации данных */}
-      </div>
-      <div>
+      <div className="si-table card">
+        <div className="si-table__head">
+          <span>Рег. номер</span>
+          <span>Название</span>
+          <span>Тип</span>
+          <span>Заводской №</span>
+          <span>Метрологические характеристики</span>
+          <span>Поверка</span>
+          <span>МПИ, мес.</span>
+          <span>Следующая поверка</span>
+          <span>Год выпуска</span>
+          <span>Статус</span>
+        </div>
         {measuringInstruments.map((instrument) => (
-          <div key={instrument.id} className={`standard-item ${new Date(instrument.calibration_date) < new Date() ? 'expired' : ''}`} onDoubleClick={() => handleDoubleClick(instrument.id)}>
-            <span>{instrument.registration_number}</span>
-            <span>{instrument.name}</span>
+          <div
+            key={instrument.id}
+            className={`si-table__row ${authTokens ? 'is-clickable' : ''}`}
+            onDoubleClick={() => handleDoubleClick(instrument.id)}
+            title={authTokens ? 'Дважды щёлкните, чтобы редактировать' : undefined}
+          >
+            <span>{instrument.registration_number || '—'}</span>
+            <span className="si-table__strong">{instrument.name}</span>
             <span>{instrument.type}</span>
             <span>{instrument.serial_number}</span>
-            <span>{instrument.metrological_characteristics}</span>
+            <span className="si-table__muted">{instrument.metrological_characteristics || '—'}</span>
             <span>{formatDate(instrument.calibration_date)}</span>
             <span>{instrument.calibration_interval}</span>
             <span>{formatDate(instrument.next_calibration_date)}</span>
             <span>{instrument.year_of_manufacture}</span>
-            <span className={instrument.suitability ? 'suitable' : 'unsuitable'}>{instrument.suitability ? 'Годен' : 'Брак'}</span>
+            <span>
+              <span className={`badge ${instrument.current_suitability ?? instrument.suitability ? 'badge--success' : 'badge--danger'}`}>
+                {instrument.current_suitability ?? instrument.suitability ? 'Годен' : 'Брак'}
+              </span>
+            </span>
           </div>
         ))}
       </div>
-      <div className="footer">
-        {authTokens && (
-          <button onClick={handleCreateMeasuringInstrument} className="create-standard-link">
-            Добавить СИ
-          </button>
-        )}
-      </div>
-      
+
       {isCreating && authTokens && <MeasuringInstrumentForm onCloseForm={handleCloseForm} />}
       {editingMeasuringInstrumentId && authTokens && <MeasuringInstrumentForm instrumentId={editingMeasuringInstrumentId} onCloseForm={handleCloseForm} />}
-    </div>
+      </main>
+    </>
   );
 };
 
