@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import './App.css';
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
+import About from './components/About';
 import ParametersPage from './pages/ParametersPage';
 import MeasuringInstrumentsList from './components/MeasuringInstrumentsList';
 import MeasuringInstrumentsForm from './components/MeasuringInstrumentsForm';
@@ -13,6 +14,7 @@ import BuildingParametersListPage from './pages/BuildingParametersListPage';
 import BuildingParametersPage from './pages/BuildingParametersPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ParametersListPage from './pages/ParametersListPage';
+import BoundaryParametersPage from './pages/BoundaryParametersPage';
 
 function App() {
   return (
@@ -22,9 +24,11 @@ function App() {
           <AuthProvider>
             <Header />
             <Routes>
+              <Route path="/boundary-parameters" element={<BoundaryParametersPage />} /> {/* Новый роут */}
               <Route path="/rooms-parameters" element={<ParametersListPage />} />
               <Route path="/buildings-parameters" element={<BuildingParametersListPage />} />
               <Route path="/measuring-instruments" element={<MeasuringInstrumentsList />} />
+              <Route path="/about" element={<About />} />
               <Route path="/login" element={<LoginPage />} />
               <Route
                 path="room-parameter/:id"

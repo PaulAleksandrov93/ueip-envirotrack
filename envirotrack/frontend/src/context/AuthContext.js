@@ -21,25 +21,31 @@ export const AuthProvider = ({ children }) => {
 
   const loginUser = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/token/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: e.target.username.value,
-        password: e.target.password.value,
-      }),
-    });
-    const data = await response.json();
+    const username = e.target.username.value;
+    const password = e.target.password.value;
 
-    if (response.status === 200) {
-      setAuthTokens(data);
-      setUser(jwt_decode(data.access));
-      localStorage.setItem("authTokens", JSON.stringify(data));
-      navigate("/rooms-parameters");
-    } else {
-      alert("Что-то пошло не так!");
+    try {
+      const response = await fetch("/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setAuthTokens(data);
+        setUser(jwt_decode(data.access));
+        localStorage.setItem("authTokens", JSON.stringify(data));
+        navigate("/rooms-parameters");
+        return { success: true }; // Успешный вход
+      } else {
+        return { error: "Неверное имя пользователя или пароль" }; // Ошибка авторизации
+      }
+    } catch (error) {
+      return { error: "Произошла ошибка при попытке входа" }; // Ошибка сети
     }
   };
 

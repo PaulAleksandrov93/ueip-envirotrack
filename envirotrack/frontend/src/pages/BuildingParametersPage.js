@@ -32,6 +32,53 @@ const BuildingParametersPage = () => {
   const [measurementInstruments, setMeasurementInstruments] = useState([]);
   const [selectedMeasurementInstruments, setSelectedMeasurementInstruments] = useState([]);
   
+
+  // ---
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [exceededParameters, setExceededParameters] = useState([]);
+  // ---
+
+  // Проверка граничных параметров
+  const checkParameterBoundaries = () => {
+    if (!selectedBuilding) return [];
+    
+    const exceeded = [];
+    
+    parameterSets.forEach((paramSet, setIndex) => {
+      // Проверка напряжения
+      if (paramSet.voltage !== '') {
+        const voltage = parseFloat(paramSet.voltage);
+        if (voltage < selectedBuilding.voltage_min || voltage > selectedBuilding.voltage_max) {
+          exceeded.push({
+            parameter: 'Напряжение',
+            value: voltage,
+            min: selectedBuilding.voltage_min,
+            max: selectedBuilding.voltage_max,
+            unit: 'В',
+            setIndex
+          });
+        }
+      }
+      
+      // Проверка частоты
+      if (paramSet.frequency !== '') {
+        const frequency = parseFloat(paramSet.frequency);
+        if (frequency < selectedBuilding.frequency_min || frequency > selectedBuilding.frequency_max) {
+          exceeded.push({
+            parameter: 'Частота',
+            value: frequency,
+            min: selectedBuilding.frequency_min,
+            max: selectedBuilding.frequency_max,
+            unit: 'Гц',
+            setIndex
+          });
+        }
+      }
+    });
+    
+    return exceeded;
+  };
+
   useEffect(() => {
     setSelectedMeasurementInstruments([{ value: null, label: 'Выбрать СИ' }]);
   }, []);
@@ -62,6 +109,8 @@ const BuildingParametersPage = () => {
     {
       voltage: '',
       frequency: '',
+      waveform_shape: 'синусоидальная', // Устанавливаем значение по умолчанию
+      harmonic_coefficient: '',          // Пустое значение для ввода процента
       time: '',
     }
   ]);
@@ -209,6 +258,8 @@ const BuildingParametersPage = () => {
           const newSet = { 
             voltage: '',
             frequency: '',
+            waveform_shape: 'синусоидальная',
+            harmonic_coefficient: '',
             time: '',
           };
           updateParameterSet(prevSets.length, newSet);
@@ -251,6 +302,7 @@ const BuildingParametersPage = () => {
     const fields = [
       { key: 'voltage', label: 'Напряжение сети', unit: 'В', min: selectedBuilding?.voltage_min, max: selectedBuilding?.voltage_max },
       { key: 'frequency', label: 'Частота тока', unit: 'Гц', min: selectedBuilding?.frequency_min, max: selectedBuilding?.frequency_max },
+      { key: 'harmonic_coefficient', label: 'Коэффициент гармоник', unit: '%' },
     ];
 
     return parameterSets.map((parameterSet, index) => (
@@ -293,6 +345,25 @@ const BuildingParametersPage = () => {
               </div>
             );
           })}
+          {(() => {
+            const shape = parameterSet.waveform_shape ?? 'синусоидальная';
+            const unusual = shape.trim() !== '' && shape.trim().toLowerCase() !== 'синусоидальная';
+            return (
+              <div className={`form-field ${unusual ? 'is-invalid' : ''}`}>
+                <label htmlFor={`waveform_shape-${index}`}>
+                  Форма кривой
+                  {unusual && <span className='exceeded-warning' title='Ожидается синусоидальная'>!</span>}
+                </label>
+                <input
+                  id={`waveform_shape-${index}`}
+                  type='text'
+                  value={shape}
+                  onChange={(e) => handleParameterSetChange(index, 'waveform_shape', e.target.value)}
+                />
+                <small className='form-hint'>Норма: синусоидальная</small>
+              </div>
+            );
+          })()}
         </div>
       </section>
     ));
@@ -446,13 +517,35 @@ const BuildingParametersPage = () => {
     setParameter((prevParameter) => ({ ...prevParameter, [field]: value }));
   };
 
+  // const handleSave = async () => {
+  //   if (id === 'new') {
+  //     createParameters();
+  //   } else {
+  //     await updateParameter();
+  //   }
+  // };
+
+  // ---
   const handleSave = async () => {
+    if (!validateFields()) return;
+    
+    const exceededParams = checkParameterBoundaries();
+    if (exceededParams.length > 0) {
+      setExceededParameters(exceededParams);
+      setShowWarningModal(true);
+    } else {
+      proceedWithSave();
+    }
+  };
+
+  const proceedWithSave = async () => {
     if (id === 'new') {
-      createParameters();
+      await createParameters();
     } else {
       await updateParameter();
     }
   };
+  // ---
 
   return (
     <div className='record-page'>
@@ -484,20 +577,28 @@ const BuildingParametersPage = () => {
               inputId='building'
               classNamePrefix='rs'
               className="custom-select"
-              options={buildings ? buildings.map((building) => ({ 
-                value: building.id, 
-                label: building.building_number, 
-                voltage_min: building.voltage_min,
-                voltage_max: building.voltage_max,
-                frequency_min: building.frequency_min,
-                frequency_max: building.frequency_max,
-              })) : []}
-              value={selectedBuilding ? { value: selectedBuilding.id, label: selectedBuilding.building_number } : null}
+              options={buildings 
+                ? [...buildings]
+                    .sort((a, b) => a.building_number.localeCompare(b.building_number, undefined, { 
+                      numeric: true, 
+                      sensitivity: 'base' 
+                    }))
+                    .map((building) => ({ 
+                      value: building.id, 
+                      label: `${building.building_number} (${building.voltage_min}-${building.voltage_max}V)`, // Можно добавить доп. информацию
+                      ...building // Все поля здания будут доступны в selectedOption
+                    })) 
+                : []}
+              value={selectedBuilding ? { 
+                value: selectedBuilding.id, 
+                label: selectedBuilding.building_number 
+              } : null}
               onChange={(selectedOption) => {
                 const newSelectedBuilding = buildings.find(building => building.id === selectedOption.value);
-                setSelectedBuilding(newSelectedBuilding)
+                setSelectedBuilding(newSelectedBuilding);
               }}
               placeholder="Выбрать здание"
+              noOptionsMessage={() => "Здания не найдены"}
             />
           </div>
           <div className='form-field'>
@@ -597,6 +698,36 @@ const BuildingParametersPage = () => {
         </section>
       </div>
       {showErrorModal && <ErrorMessageModal message={errorMessage} onClose={closeErrorModal} />}
+
+      {showWarningModal && (
+        <div className="modal-overlay">
+          <div className="warning-modal">
+            <h3>Предупреждение</h3>
+            <p>Следующие параметры выходят за границы допустимых значений:</p>
+            <ul>
+              {exceededParameters.map((param, idx) => (
+                <li key={idx}>
+                  {param.parameter}: {param.value} {param.unit} (допустимо: {param.min} - {param.max} {param.unit})
+                  {parameterSets.length > 1 && ` (Набор параметров ${param.setIndex + 1})`}
+                </li>
+              ))}
+            </ul>
+            <div className="warning-modal-buttons">
+              <button type='button' className='btn btn--secondary' onClick={() => setShowWarningModal(false)}>Отменить</button>
+              <button
+                type='button'
+                className='btn btn--danger'
+                onClick={() => {
+                  setShowWarningModal(false);
+                  proceedWithSave();
+                }}
+              >
+                Сохранить несмотря на предупреждение
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     );
 };

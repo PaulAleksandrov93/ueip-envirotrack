@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { FiAlertTriangle, FiCalendar, FiChevronRight, FiClock, FiTool, FiUser } from 'react-icons/fi';
 import AuthContext from '../context/AuthContext';
-import { formatDate, formatTime, formatValue, isOutOfRange, shortName } from './recordFormat';
+import { formatDate, formatMetric, formatTime, isMetricInvalid, shortName } from './recordFormat';
 import './RecordCard.css';
 
 const roomMetrics = (room) => {
@@ -19,17 +19,17 @@ const roomMetrics = (room) => {
 };
 
 export const MetricTile = ({ metric, value }) => {
-  const invalid = isOutOfRange(value, metric.min, metric.max);
+  const invalid = isMetricInvalid(metric, value);
   const hasRange = metric.min !== null && metric.min !== undefined && metric.max !== null && metric.max !== undefined;
+  const title = metric.expected !== undefined
+    ? `Норма: ${metric.expected}`
+    : hasRange ? `Норма: ${metric.min} – ${metric.max} ${metric.unit}` : undefined;
   return (
-    <div
-      className={`metric ${invalid ? 'metric--invalid' : ''}`}
-      title={hasRange ? `Норма: ${metric.min} – ${metric.max} ${metric.unit}` : undefined}
-    >
+    <div className={`metric ${metric.text ? 'metric--text' : ''} ${invalid ? 'metric--invalid' : ''}`} title={title}>
       <span className='metric__label'>{metric.label}</span>
       <span className='metric__value'>
-        {formatValue(value, metric.digits)}
-        <small>{metric.unit}</small>
+        {formatMetric(metric, value)}
+        {metric.unit && <small>{metric.unit}</small>}
       </span>
     </div>
   );
@@ -39,7 +39,7 @@ export const RecordCard = ({ to, place, subtitle, tags, responsible, date, sets,
   const { user } = useContext(AuthContext);
   const visibleMetrics = metrics.filter((m) => sets.some((s) => s[m.key] !== undefined && s[m.key] !== null));
   const violations = sets.reduce(
-    (count, set) => count + visibleMetrics.filter((m) => isOutOfRange(set[m.key], m.min, m.max)).length,
+    (count, set) => count + visibleMetrics.filter((m) => isMetricInvalid(m, set[m.key])).length,
     0,
   );
 

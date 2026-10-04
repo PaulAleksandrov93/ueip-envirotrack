@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FiBookOpen, FiChevronDown, FiLogIn, FiLogOut, FiUsers } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiBookOpen, FiChevronDown, FiInfo, FiLogIn, FiLogOut, FiUsers } from 'react-icons/fi';
 import AuthContext from '../context/AuthContext';
 import { ReactComponent as WhiteLogo } from '../assets/rosatom_white_logo.svg';
 import ErrorMessageModal from './ErrorMessageModal';
@@ -24,6 +24,7 @@ const Header = () => {
   const [responsiblesList, setResponsiblesList] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -87,6 +88,17 @@ const Header = () => {
                     <FiUsers /> Список ответственных
                   </button>
                 </li>
+                <li>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate('/about');
+                    }}
+                  >
+                    <FiInfo /> О программе
+                  </button>
+                </li>
                 <li className='user-menu__separator' />
                 <li>
                   <button type='button' className='is-danger' onClick={logoutUser}>
@@ -97,9 +109,14 @@ const Header = () => {
             )}
           </div>
         ) : (
-          <Link to='/login' className='btn btn--sm app-header__login'>
-            <FiLogIn /> Войти
-          </Link>
+          <div className='app-header__guest'>
+            <Link to='/about' className='btn btn--sm app-header__login'>
+              <FiInfo /> О программе
+            </Link>
+            <Link to='/login' className='btn btn--sm app-header__login'>
+              <FiLogIn /> Войти
+            </Link>
+          </div>
         )}
       </div>
 

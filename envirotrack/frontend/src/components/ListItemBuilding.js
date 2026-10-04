@@ -4,7 +4,8 @@ import { RecordCard } from './ListItem';
 const buildingMetrics = (building) => [
   { key: 'voltage', label: 'Напряжение сети', unit: 'В', min: building.voltage_min, max: building.voltage_max, digits: 2 },
   { key: 'frequency', label: 'Частота тока', unit: 'Гц', min: building.frequency_min, max: building.frequency_max, digits: 2 },
-  { key: 'harmonic_coefficient', label: 'Коэф. гармоник', unit: '%' },
+  { key: 'harmonic_coefficient', label: 'Коэф. гармоник', unit: '%', digits: 1 },
+  { key: 'waveform_shape', label: 'Форма кривой', text: true, expected: 'синусоидальная' },
 ];
 
 const ListItemBuilding = ({ parameter }) => {

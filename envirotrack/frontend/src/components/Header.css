@@ -40,6 +40,11 @@
   margin-left: auto;
 }
 
+.app-header__guest {
+  display: flex;
+  gap: 8px;
+}
+
 .app-header__login {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;

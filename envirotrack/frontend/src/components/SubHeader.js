@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiActivity, FiHome, FiThermometer } from 'react-icons/fi';
+import { FiActivity, FiHome, FiSliders, FiThermometer } from 'react-icons/fi';
 import './SubHeader.css';
 
 const TABS = [
   { to: '/rooms-parameters', label: 'Параметры по помещениям', icon: FiThermometer },
   { to: '/buildings-parameters', label: 'Параметры по зданиям', icon: FiHome },
   { to: '/measuring-instruments', label: 'Средства измерений', icon: FiActivity },
+  { to: '/boundary-parameters', label: 'Граничные значения', icon: FiSliders },
 ];
 
 const SubHeader = () => (

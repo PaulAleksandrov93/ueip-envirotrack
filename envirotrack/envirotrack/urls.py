@@ -10,7 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('backend.api.urls')),
     path('', spa),
-    re_path(r'^(login|rooms-parameters|buildings-parameters|measuring-instruments|room-parameter|building-parameter|measurement-instrument).*$', spa),
+    re_path(r'^(login|about|boundary-parameters|rooms-parameters|buildings-parameters|measuring-instruments|room-parameter|building-parameter|measurement-instrument).*$', spa),
 ]
 
 if settings.DEBUG:

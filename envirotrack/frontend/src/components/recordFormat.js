@@ -26,5 +26,17 @@ export const formatValue = (value, digits) => {
   return digits === undefined ? String(num).replace('.', ',') : num.toFixed(digits).replace('.', ',');
 };
 
+export const isMetricInvalid = (metric, value) => {
+  if (metric.expected !== undefined) {
+    return value !== null && value !== undefined && value !== '' && value !== metric.expected;
+  }
+  return isOutOfRange(value, metric.min, metric.max);
+};
+
+export const formatMetric = (metric, value) => {
+  if (metric.text) return value || '—';
+  return formatValue(value, metric.digits);
+};
+
 export const shortName = (person) =>
   person ? `${person.last_name} ${person.first_name ? `${person.first_name[0]}.` : ''}` : 'Не указан';

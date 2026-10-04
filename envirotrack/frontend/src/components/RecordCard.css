@@ -181,3 +181,8 @@
   opacity: 0.6;
   transition: opacity 0.15s ease;
 }
+
+.metric--text .metric__value {
+  font-size: 14px;
+  padding-top: 3px;
+}
