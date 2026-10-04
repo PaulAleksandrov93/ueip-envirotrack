@@ -1,134 +1,160 @@
-/* MeasuringInstrumentsForm.css */
-
 .measuring-instruments-form-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 35, 64, 0.45);
+}
+
+.measuring-instruments-form-container {
+  width: min(680px, 94vw);
 }
 
 .measuring-instruments-form {
-  padding: 20px;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 70%; 
-  max-width: 600px;
-  position: relative; 
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-lg);
 }
 
 .measuring-instruments-form h2 {
-  margin-bottom: 20px;
-  color: #333; 
+  margin: 0 32px 18px 0;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .measuring-instruments-form form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+
+.measuring-instruments-form .form-group {
   display: flex;
   flex-direction: column;
+  gap: 5px;
+  min-width: 0;
 }
 
-.measuring-instruments-form label {
-  margin-bottom: 15px; 
-  font-weight: bold;
+.measuring-instruments-form .form-group:has(textarea) {
+  grid-column: 1 / -1;
 }
 
-.measuring-instruments-form input,
-.measuring-instruments-form textarea {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-top: 5px;
-  transition: border-color 0.3s ease;
-  margin-left: 0; 
-}
-
-.measuring-instruments-form input:focus,
-.measuring-instruments-form textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 6px #007bff; 
+.measuring-instruments-form .form-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-text-2);
 }
 
 .measuring-instruments-form .required-field::after {
   content: '*';
-  color: red;
-  margin-left: 5px;
+  margin-left: 4px;
+  color: var(--c-danger);
 }
 
-.measuring-instruments-form button {
-  padding: 12px 25px; 
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
+.measuring-instruments-form .form-input.error {
+  border-color: var(--c-danger);
+  background: var(--c-danger-50);
+}
+
+.measuring-instruments-form .error-message {
+  font-size: 12px;
+  color: var(--c-danger);
+}
+
+.suitability-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--c-surface-2);
+}
+
+.suitability-status {
+  font-weight: 700;
+}
+
+.suitability-status.suitable {
+  color: var(--c-success);
+}
+
+.suitability-status.unsuitable {
+  color: var(--c-danger);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding-top: 6px;
+}
+
+.form-button {
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 15px; 
-  transition: background-color 0.3s ease; 
 }
 
-.measuring-instruments-form button:hover {
-  background-color: #0056b3;
+.form-button.primary {
+  background: var(--c-brand);
+  color: #fff;
 }
 
-.measuring-instruments-form button:disabled {
-  background-color: #ccc;
+.form-button.primary:hover:not(:disabled) {
+  background: var(--c-brand-600);
+}
+
+.form-button.secondary {
+  background: var(--c-surface);
+  border-color: var(--c-border-strong);
+  color: var(--c-text);
+}
+
+.form-button.secondary:hover:not(:disabled) {
+  border-color: var(--c-brand);
+  color: var(--c-brand);
+}
+
+.form-button.delete-button {
+  margin-right: auto;
+  background: transparent;
+  color: var(--c-danger);
+  border-color: #f3c3c3;
+}
+
+.form-button.delete-button:hover:not(:disabled) {
+  background: var(--c-danger-50);
+}
+
+.form-button:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .measuring-instruments-form-close-button {
   position: absolute;
-  top: 0px; 
-  right: 10px;
-  cursor: pointer;
-  font-size: 24px; 
+  top: 14px;
+  right: 16px;
+  border: 0;
   background: transparent;
-  border: none;
-  color: #666;
-  z-index: 1;
-  transition: color 0.3s ease; 
+  font-size: 24px;
+  line-height: 1;
+  color: var(--c-muted);
+  cursor: pointer;
 }
 
 .measuring-instruments-form-close-button:hover {
-  color: #333;
-}
-
-.measuring-instruments-form input,
-.measuring-instruments-form textarea,
-.measuring-instruments-form label,
-.measuring-instruments-form button {
-  font-size: 12px;
-}
-
-.measuring-instruments-form input.error {
-  border-color: red;
-}
-
-/* Увеличиваем размер галочки и убираем выделение */
-.measuring-instruments-form input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  vertical-align: middle;
-}
-
-.measuring-instruments-form input[type="checkbox"]:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Центрирование галочки */
-.suitability-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-}
-
-.suitability-label {
-  margin-bottom: 5px;
-  text-align: center;
+  color: var(--c-text);
 }

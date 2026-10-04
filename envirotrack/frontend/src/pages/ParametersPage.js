@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import Select from 'react-select';
 import './ParametersPage.css';
+import { FiArrowLeft, FiMinus, FiPlus, FiSave, FiTrash2, FiX } from 'react-icons/fi';
 import ErrorMessageModal from '../components/ErrorMessageModal';
 
 const withOneDecimalHumidity = (sets) =>
@@ -15,6 +16,41 @@ const withOneDecimalHumidity = (sets) =>
     const num = parseFloat(set.humidity_percentage);
     return Number.isNaN(num) ? set : { ...set, humidity_percentage: num.toFixed(1) };
   });
+
+const TEMPERATURE = { key: 'temperature_celsius', label: 'Температура', unit: '°C' };
+const HUMIDITY = { key: 'humidity_percentage', label: 'Влажность', unit: '%', step: '0.1' };
+const PRESSURE = [
+  { key: 'pressure_kpa', label: 'Давление', unit: 'кПа', hint: '1 кПа = 7.50062 мм рт. ст.' },
+  { key: 'pressure_mmhg', label: 'Давление', unit: 'мм рт. ст.', hint: '1 мм рт. ст. = 0.13332 кПа' },
+];
+const EXTRA = [
+  { key: 'voltage', label: 'Напряжение', unit: 'В' },
+  { key: 'frequency', label: 'Частота', unit: 'Гц' },
+  { key: 'radiation', label: 'Радиационный фон', unit: 'мкЗв/ч' },
+];
+
+const getSetFields = (room) => {
+  if (room?.is_storage) return [TEMPERATURE, HUMIDITY];
+  if (room?.has_additional_parameters) return [TEMPERATURE, HUMIDITY, ...PRESSURE, ...EXTRA];
+  return [TEMPERATURE, HUMIDITY, ...PRESSURE];
+};
+
+const getRoomBounds = (room) => {
+  if (!room) return {};
+  const extra = room.additional_parameters || {};
+  return {
+    temperature_celsius: { min: room.temperature_min, max: room.temperature_max },
+    humidity_percentage: { min: room.humidity_min, max: room.humidity_max },
+    pressure_kpa: { min: room.pressure_min_kpa, max: room.pressure_max_kpa },
+    pressure_mmhg: { min: room.pressure_min_mmhg, max: room.pressure_max_mmhg },
+    voltage: { min: extra.voltage_min, max: extra.voltage_max },
+    frequency: { min: extra.frequency_min, max: extra.frequency_max },
+    radiation: { min: extra.radiation_min, max: extra.radiation_max },
+  };
+};
+
+const roomLabel = (room) =>
+  room ? (room.building_number ? `${room.room_number} · зд. ${room.building_number}` : room.room_number) : '';
 
 const ParameterPage = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -296,11 +332,9 @@ const ParameterPage = () => {
     }
   };
   
-  const removeMeasurementInstrument = () => {
+  const removeMeasurementInstrument = (index) => {
     if (selectedMeasurementInstruments.length > 1) {
-      const updatedSelectedInstruments = [...selectedMeasurementInstruments];
-      updatedSelectedInstruments.pop();
-      setSelectedMeasurementInstruments(updatedSelectedInstruments);
+      setSelectedMeasurementInstruments(selectedMeasurementInstruments.filter((_, i) => i !== index));
     }
   };
 
@@ -465,6 +499,7 @@ const ParameterPage = () => {
       const updatedRooms = data.map(room => ({
         id: room.id,
         room_number: room.room_number,
+        building_number: room.building_number,
         is_storage: room.is_storage,
         has_additional_parameters: room.has_additional_parameters,
         additional_parameters: room.additional_parameters,
@@ -655,213 +690,55 @@ const ParameterPage = () => {
   };
 
   const renderParameterSets = () => {
-    if (selectedRoom && selectedRoom.has_additional_parameters) {
-      return parameterSets.map((parameterSet, index) => (
-        <div key={index} className='parameter-set'>
-          <div className='left-column'>
-            <div className='parameter-field'>
-              <label htmlFor='temperature_celsius'>Температура, °C:</label>
-              {renderExceededWarning('temperature_celsius', parameterSet.temperature_celsius, index)}
-              <input
-                type='number'
-                value={parameterSet.temperature_celsius}
-                onChange={(e) => handleParameterSetChange(index, 'temperature_celsius', e.target.value)}
-              />
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='humidity_percentage'>Влажность, %:</label>
-              {renderExceededWarning('humidity_percentage', parameterSet.humidity_percentage, index)}
-              <input
-                type='number'
-                step='0.1'
-                value={parameterSet.humidity_percentage}
-                onChange={(e) => handleParameterSetChange(index, 'humidity_percentage', e.target.value)}
-              />
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='pressure_kpa'>Давление, кПа:</label>
-              {renderExceededWarning('pressure_kpa', parameterSet.pressure_kpa, index)}
-              <input
-                type='number'
-                value={parameterSet.pressure_kpa}
-                onChange={(e) => handleParameterSetChange(index, 'pressure_kpa', e.target.value)}
-              />
-              <div className='info-text'>1 кПа = 7.50062 мм рт. ст.</div>
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='pressure_mmhg'>Давление, мм рт. ст.:</label>
-              {renderExceededWarning('pressure_mmhg', parameterSet.pressure_mmhg, index)}
-              <input
-                type='number'
-                value={parameterSet.pressure_mmhg}
-                onChange={(e) => handleParameterSetChange(index, 'pressure_mmhg', e.target.value)}
-              />
-              <div className='info-text'>1 мм рт. ст. = 0.13332 кПа</div>
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='voltage'>Напряжение, В:</label>
-              {renderExceededWarning('voltage', parameterSet.voltage, index)}
-              <input
-                type='number'
-                value={parameterSet.voltage}
-                onChange={(e) => handleParameterSetChange(index, 'voltage', e.target.value)}
-              />
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='frequency'>Частота, Гц:</label>
-              {renderExceededWarning('frequency', parameterSet.frequency, index)}
-              <input
-                type='number'
-                value={parameterSet.frequency}
-                onChange={(e) => handleParameterSetChange(index, 'frequency', e.target.value)}
-              />
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='radiation'>Радиационный фон, мкЗв • ч⁻¹:</label>
-              {renderExceededWarning('radiation', parameterSet.radiation, index)}
-              <input
-                type='number'
-                value={parameterSet.radiation}
-                onChange={(e) => handleParameterSetChange(index, 'radiation', e.target.value)}
-              />
-            </div>
-            <div className='parameter-field'>
-              <label htmlFor='time'>Время:</label>
-              <input
-                type='time'
-                step='1' 
-                value={parameterSet.time ? parameterSet.time : ''}
-                onChange={(e) => handleParameterSetChange(index, 'time', e.target.value)}
-              />
-            </div>
-            <div className="parameter-boundaries">
-              <div>Граничные значения параметров:</div>
-              <div>
-                <div>Температура: {selectedRoom.temperature_min} - {selectedRoom.temperature_max} °C</div>
-                <div>Влажность: {selectedRoom.humidity_min} - {selectedRoom.humidity_max} %</div>
-                <div>Давление: {selectedRoom.pressure_min_kpa} - {selectedRoom.pressure_max_kpa} кПа</div>
-                <div>Давление: {selectedRoom.pressure_min_mmhg} - {selectedRoom.pressure_max_mmhg} мм рт. ст.</div>
-              </div>
-              <div>
-                <div>Напряжение: {selectedRoom.additional_parameters.voltage_min} - {selectedRoom.additional_parameters.voltage_max} В</div>
-                <div>Частота: {selectedRoom.additional_parameters.frequency_min} - {selectedRoom.additional_parameters.frequency_max} Гц</div>
-                <div>Радиационный фон: {selectedRoom.additional_parameters.radiation_min} - {selectedRoom.additional_parameters.radiation_max} мкЗв • ч⁻¹</div>
-              </div>
-            </div>
+    const fields = getSetFields(selectedRoom);
+    const bounds = getRoomBounds(selectedRoom);
+
+    return parameterSets.map((parameterSet, index) => (
+      <section key={index} className='set-card card'>
+        <header className='set-card__head'>
+          <h3>Набор {index + 1}</h3>
+          <div className='set-card__time'>
+            <label htmlFor={`time-${index}`}>Время</label>
+            <input
+              id={`time-${index}`}
+              type='time'
+              step='1'
+              value={parameterSet.time ? parameterSet.time : ''}
+              onChange={(e) => handleParameterSetChange(index, 'time', e.target.value)}
+            />
           </div>
+        </header>
+        <div className='set-card__grid'>
+          {fields.map((field) => {
+            const warning = renderExceededWarning(field.key, parameterSet[field.key] ?? '', index);
+            const range = bounds[field.key];
+            return (
+              <div key={field.key} className={`form-field ${warning ? 'is-invalid' : ''}`}>
+                <label htmlFor={`${field.key}-${index}`}>
+                  {field.label}
+                  {warning}
+                </label>
+                <div className='input-unit'>
+                  <input
+                    id={`${field.key}-${index}`}
+                    type='number'
+                    step={field.step || 'any'}
+                    value={parameterSet[field.key] ?? ''}
+                    onChange={(e) => handleParameterSetChange(index, field.key, e.target.value)}
+                  />
+                  <span className='input-unit__suffix'>{field.unit}</span>
+                </div>
+                <small className='form-hint'>
+                  {range && range.min !== undefined && range.min !== null && range.max !== undefined && range.max !== null
+                    ? `Норма: ${range.min} – ${range.max} ${field.unit}`
+                    : field.hint || '\u00a0'}
+                </small>
+              </div>
+            );
+          })}
         </div>
-      ));
-    } else if (selectedRoom && selectedRoom.is_storage) {
-        return parameterSets.map((parameterSet, index) => (
-          <div key={index} className='parameter-set'>
-            <div className='left-column'>
-              <div className='parameter-field'>
-                <label htmlFor='temperature_celsius'>Температура, °C:</label>
-                {renderExceededWarning('temperature_celsius', parameterSet.temperature_celsius, index)}
-                <input
-                  type='number'
-                  value={parameterSet.temperature_celsius}
-                  onChange={(e) => handleParameterSetChange(index, 'temperature_celsius', e.target.value)}
-                />
-              </div>
-
-              <div className='parameter-field'>
-                <label htmlFor='humidity_percentage'>Влажность, %:</label>
-                {renderExceededWarning('humidity_percentage', parameterSet.humidity_percentage, index)}
-                <input
-                  type='number'
-                  step='0.1'
-                  value={parameterSet.humidity_percentage}
-                  onChange={(e) => handleParameterSetChange(index, 'humidity_percentage', e.target.value)}
-                />
-              </div>
-              <div className='parameter-field'>
-                <label htmlFor='time'>Время:</label>
-                <input
-                  type='time'
-                  step='1' 
-                  value={parameterSet.time ? parameterSet.time : ''}
-                  onChange={(e) => handleParameterSetChange(index, 'time', e.target.value)}
-                />
-              </div>
-              <div className='parameter-boundaries'>
-                Граничные значения параметров:
-                <div>Температура: {selectedRoom.temperature_min} - {selectedRoom.temperature_max} °C</div>
-                <div>Влажность: {selectedRoom.humidity_min} - {selectedRoom.humidity_max} %</div>
-              </div>
-            </div>
-          </div>
-        ));
-    } else {
-        return parameterSets.map((parameterSet, index) => (
-          <div key={index} className='parameter-set'>
-            <div className='left-column'>
-              <div className='parameter-field'>
-                <label htmlFor='temperature_celsius'>Температура, °C:</label>
-                {renderExceededWarning('temperature_celsius', parameterSet.temperature_celsius, index)}
-                <input
-                  type='number'
-                  value={parameterSet.temperature_celsius}
-                  onChange={(e) => handleParameterSetChange(index, 'temperature_celsius', e.target.value)}
-                />
-              </div>
-
-              <div className='parameter-field'>
-                <label htmlFor='humidity_percentage'>Влажность, %:</label>
-                {renderExceededWarning('humidity_percentage', parameterSet.humidity_percentage, index)}
-                <input
-                  type='number'
-                  step='0.1'
-                  value={parameterSet.humidity_percentage}
-                  onChange={(e) => handleParameterSetChange(index, 'humidity_percentage', e.target.value)}
-                />
-              </div>
-
-              <div className='parameter-field'>
-                <label htmlFor='pressure_kpa'>Давление, кПа:</label>
-                {renderExceededWarning('pressure_kpa', parameterSet.pressure_kpa, index)}
-                <input
-                  type='number'
-                  value={parameterSet.pressure_kpa}
-                  onChange={(e) => handleParameterSetChange(index, 'pressure_kpa', e.target.value)}
-                />
-                <div className='info-text'>1 кПа = 7.50062 мм рт. ст.</div>
-              </div>
-
-              <div className='parameter-field'>
-                <label htmlFor='pressure_mmhg'>Давление, мм рт. ст.:</label>
-                {renderExceededWarning('pressure_mmhg', parameterSet.pressure_mmhg, index)}
-                <input
-                  type='number'
-                  value={parameterSet.pressure_mmhg}
-                  onChange={(e) => handleParameterSetChange(index, 'pressure_mmhg', e.target.value)}
-                />
-                <div className='info-text'>1 мм рт. ст. = 0.13332 кПа</div>
-              </div>
-              <div className='parameter-field'>
-                <label htmlFor='time'>Время:</label>
-                <input
-                  type='time'
-                  step='1' 
-                  value={parameterSet.time ? parameterSet.time : ''}
-                  onChange={(e) => handleParameterSetChange(index, 'time', e.target.value)}
-                />
-              </div>
-              <div className="parameter-boundaries">
-                <div>Граничные значения параметров:</div>
-                {selectedRoom && (
-                  <div>
-                    <div>Температура: {selectedRoom.temperature_min} - {selectedRoom.temperature_max} °C</div>
-                    <div>Влажность: {selectedRoom.humidity_min} - {selectedRoom.humidity_max} %</div>
-                    <div>Давление: {selectedRoom.pressure_min_kpa} - {selectedRoom.pressure_max_kpa} кПа</div>
-                    <div>Давление: {selectedRoom.pressure_min_mmhg} - {selectedRoom.pressure_max_mmhg} мм рт. ст.</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ));
-      }
+      </section>
+    ));
   };
 
   const createParameters = async () => {
@@ -1209,51 +1086,39 @@ const ParameterPage = () => {
 
 
   return (
-    <div className='parameter'>
-      <h2>
-        {id === 'new' ? 'Форма создания записи' : 'Форма редактирования записи'}
-      </h2>
-      <div className='parameter-header'>
-        <div className='button-header'>
-          {id !== 'new' ? (
-            <>
-              <button className="parameter-button-delete" onClick={deleteParameter}>Удалить</button>
-              <button className="parameter-button-save" onClick={handleSave}>Сохранить</button>
-              {parameterSets.length < 2 && ( // Скрываем кнопку "Добавить набор параметров", если уже есть два набора
-                <button className="parameter-button-create" onClick={addParameterSet}>
-                  Добавить набор параметров
-                </button>
-              )}
-              {parameterSets.length > 1 && ( // Показываем кнопку удаления набора параметров только если их больше одного
-                <button className="parameter-button-create" onClick={deleteLastParameterSet}>
-                  Удалить набор параметров
-                </button>
-              )}
-              <button className="parameter-button-back" onClick={handleSubmit}>Назад</button>
-            </>
-          ) : (
-            <>
-              <button className="parameter-button-create" onClick={handleSave}>Создать запись</button>
-              {parameterSets.length < 2 && ( // Скрываем кнопку "Добавить набор параметров", если уже есть два набора
-                <button className="parameter-button-create" onClick={addParameterSet}>
-                  Добавить набор параметров
-                </button>
-              )}
-              {parameterSets.length > 1 && ( // Показываем кнопку удаления набора параметров только если их больше одного
-                <button className="parameter-button-create" onClick={deleteLastParameterSet}>
-                  Удалить набор параметров
-                </button>
-              )}
-              <button className="parameter-button-back" onClick={handleSubmit}>Назад</button>
-            </>
+    <div className='record-page'>
+      <div className='record-toolbar'>
+        <button type='button' className='btn btn--ghost' onClick={handleSubmit}>
+          <FiArrowLeft /> К списку
+        </button>
+        <div className='record-toolbar__title'>
+          <h1>{id === 'new' ? 'Новая запись' : 'Редактирование записи'}</h1>
+          {selectedRoom && (
+            <span className='record-toolbar__subtitle'>
+              Помещение {roomLabel(selectedRoom)}
+              {createdAtDate ? ` · ${createdAtDate.split('-').reverse().join('.')}` : ''}
+            </span>
           )}
         </div>
+        <div className='record-toolbar__actions'>
+          {id !== 'new' && (
+            <button type='button' className='btn btn--danger-ghost' onClick={deleteParameter}>
+              <FiTrash2 /> Удалить
+            </button>
+          )}
+          <button type='button' className='btn btn--primary' onClick={handleSave}>
+            <FiSave /> {id === 'new' ? 'Создать запись' : 'Сохранить'}
+          </button>
+        </div>
       </div>
-      <div className='parameter-fields'>
-        <div className='left-column'>
-          <div className='parameter-field'>
-            <label htmlFor='room'>Помещение:</label>
+      <div className='record-layout'>
+        <aside className='record-main card'>
+          <h2 className='record-section-title'>Основное</h2>
+          <div className='form-field'>
+            <label htmlFor='room'>Помещение</label>
             <Select
+              inputId='room'
+              classNamePrefix='rs'
               className="custom-select"
               options={rooms 
                 ? [...rooms]
@@ -1271,7 +1136,7 @@ const ParameterPage = () => {
                     })
                     .map((room) => ({
                       value: room.id,
-                      label: room.room_number,
+                      label: roomLabel(room),
                       is_storage: room.is_storage,
                       has_additional_parameters: room.has_additional_parameters,
                       temperature_min: room.temperature_min,
@@ -1290,9 +1155,9 @@ const ParameterPage = () => {
                       radiation_max: room.radiation_max,
                     })) 
                 : []}
-              value={selectedRoom ? { 
-                value: selectedRoom.id, 
-                label: selectedRoom.room_number 
+              value={selectedRoom ? {
+                value: selectedRoom.id,
+                label: roomLabel(selectedRoom)
               } : null}
               onChange={(selectedOption) => {
                 const newSelectedRoom = rooms.find(room => room.id === selectedOption.value);
@@ -1303,8 +1168,8 @@ const ParameterPage = () => {
               noOptionsMessage={() => "Помещения не найдены"}
             />
           </div>
-          <div className='parameter-field'>
-            <label htmlFor='created_at'>Дата:</label>
+          <div className='form-field'>
+            <label htmlFor='created_at'>Дата</label>
             <input
               type='date'
               id='created_at'
@@ -1313,18 +1178,19 @@ const ParameterPage = () => {
               onKeyUp={handleKeyboardInput} // Обработка ввода с клавиатуры
             />
           </div>
-          <div className='parameter-field'>
-            <label htmlFor='measurement_instruments'>Средства измерений:</label>
+          <div className='form-field'>
+            <label htmlFor='measurement_instruments'>Средства измерений</label>
             {selectedMeasurementInstruments.map((selectedInstrument, index) => {
               // Проверяем, является ли выбранное СИ негодным
               const isSelectedInstrumentUnsuitable = selectedInstrument && selectedInstrument.value && 
                 measurementInstruments.find(instr => instr.id === selectedInstrument.value)?.is_suitable === false;
               
               return (
-                <div key={index}>
+                <div key={index} className='si-row'>
+                  <div className='si-row__control'>
                   <Select
                     className="custom-select"
-                    classNamePrefix="react-select"
+                    classNamePrefix="rs"
                     options={measurementInstruments.map((instrument) => {
                       const isUnsuitable = instrument.is_suitable === false;
                       
@@ -1384,7 +1250,8 @@ const ParameterPage = () => {
                       </div>
                     )}
                   />
-                  
+                  </div>
+
                   {/* Предупреждение о негодности выбранного СИ */}
                   {isSelectedInstrumentUnsuitable && (
                     <div className="unsuitable-warning">
@@ -1395,36 +1262,58 @@ const ParameterPage = () => {
                     </div>
                   )}
                   
-                  {index === selectedMeasurementInstruments.length - 1 && selectedMeasurementInstruments.length > 1 && (
-                    <button className="remove-instrument-button" onClick={removeMeasurementInstrument}>
-                      Удалить СИ
+                  {selectedMeasurementInstruments.length > 1 && (
+                    <button
+                      type='button'
+                      className='btn btn--ghost btn--icon btn--sm si-row__remove'
+                      title='Убрать это СИ'
+                      onClick={() => removeMeasurementInstrument(index)}
+                    >
+                      <FiX />
                     </button>
                   )}
                 </div>
               );
             })}
             {selectedMeasurementInstruments.length < 5 && (
-              <button className="parameter-button-create" onClick={addMeasurementInstrument}>
-                Добавить СИ
+              <button type='button' className='btn btn--link si-add' onClick={addMeasurementInstrument}>
+                <FiPlus /> Добавить СИ
               </button>
             )}
           </div>
-          <div className='parameter-fields-1'>
-          <div className='parameter-field'>
-            <label>Создано:</label>
-            <div className="created-by">{createdBy ? `${createdBy}` : 'Нет данных'}</div>
+          <dl className='record-meta'>
+            <div>
+              <dt>Создано</dt>
+              <dd>{createdBy || '—'}</dd>
+            </div>
+            <div>
+              <dt>Изменено</dt>
+              <dd>{modifiedBy || '—'}</dd>
+            </div>
+          </dl>
+        </aside>
+        <section className='record-sets'>
+          <div className='record-sets__head'>
+            <h2 className='record-section-title'>Наборы параметров</h2>
+            <div className='record-sets__actions'>
+              {parameterSets.length > 1 && (
+                <button type='button' className='btn btn--ghost btn--sm' onClick={deleteLastParameterSet}>
+                  <FiMinus /> Убрать набор {parameterSets.length}
+                </button>
+              )}
+              {parameterSets.length < 2 && (
+                <button type='button' className='btn btn--secondary btn--sm' onClick={addParameterSet}>
+                  <FiPlus /> Добавить набор
+                </button>
+              )}
+            </div>
           </div>
-          <div className='parameter-field'>
-            <label>Изменено:</label>
-            <div className="modified-by">{modifiedBy ? `${modifiedBy}` : 'Нет данных'}</div>
-          </div>
-        </div>
-        </div>
-        <div className='right-column'>
-          <div className='parameter-set-column'>
-            {renderParameterSets()}
-          </div>
-        </div>
+          {selectedRoom ? (
+            <div className='record-sets__grid'>{renderParameterSets()}</div>
+          ) : (
+            <div className='card empty-state'>Выберите помещение — появятся поля для ввода параметров.</div>
+          )}
+        </section>
       </div>
       
       {showErrorModal && <ErrorMessageModal message={errorMessage} onClose={closeErrorModal} />}
@@ -1444,8 +1333,8 @@ const ParameterPage = () => {
               ))}
             </ul>
             <div className="warning-modal-buttons">
-              <button onClick={closeWarningModal}>Отменить</button>
-              <button onClick={() => {
+              <button type='button' className='btn btn--secondary' onClick={closeWarningModal}>Отменить</button>
+              <button type='button' className='btn btn--danger' onClick={() => {
                 closeWarningModal();
                 proceedWithSave();
               }}>Сохранить несмотря на предупреждение</button>

@@ -1,64 +1,84 @@
-/* LoginPage.css */
-
-body {
-  font-family: 'Roboto', sans-serif;
-}
-
-
 .login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh;
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 60px);
+  padding: 24px;
 }
 
 .login-form {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
   display: flex;
   flex-direction: column;
-  width: 320px;
-  align-items: center;
-}
-
-.login-form input {
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  transition: border-color 0.3s ease;
-}
-
-.login-form input:focus {
-  border-color: #4596d1; /* Цвет при фокусе */
-}
-
-.login-button {
-  background-color: #4596d1;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.login-button:hover {
-  background-color: #357dbf;
-  transform: scale(1.05);
-}
-
-.error-message {
-  color: red;
-  margin-top: 10px;
+  gap: 8px;
+  width: 360px;
+  padding: 28px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow);
 }
 
 .login-form label {
-  font-size: 16px;
-  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.login-form label svg {
+  color: var(--c-muted);
+}
+
+.login-button {
+  height: 42px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--c-brand);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: var(--c-brand-600);
+}
+
+.login-title {
+  margin-bottom: 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.password-input-container {
+  position: relative;
+}
+
+.password-input-container input {
+  padding-right: 40px;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: flex;
+  transform: translateY(-50%);
+  color: var(--c-muted);
+  cursor: pointer;
+}
+
+.password-toggle-icon:hover {
+  color: var(--c-brand);
+}
+
+.login-form .error-message {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--c-danger-50);
+  font-size: 13px;
+  color: var(--c-danger);
 }

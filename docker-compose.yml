@@ -8,6 +8,13 @@ x-backend-environment: &backend-environment
   SECRET_KEY: ${SECRET_KEY:-django-insecure-_yc=yo8(hf*if!^n*!(gdyo1tpbtk-r&%wfj7o#+w7zmm#q2$@}
   CELERY_BROKER_URL: redis://redis:6379/0
 
+# Весь .env передаётся в контейнеры, как в Метрологии: новые переменные
+# (DJANGO_ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS и т.п.) не нужно дописывать
+# сюда руками. Без .env стек тоже поднимается на значениях по умолчанию.
+x-backend-env-file: &backend-env-file
+  - path: .env
+    required: false
+
 services:
   web-app:
     build:
@@ -15,6 +22,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     init: true
+    env_file: *backend-env-file
     environment:
       <<: *backend-environment
       RUN_MIGRATIONS: "1"
@@ -80,6 +88,7 @@ services:
     restart: unless-stopped
     init: true
     command: celery -A envirotrack worker --loglevel=info --concurrency=2
+    env_file: *backend-env-file
     environment:
       <<: *backend-environment
     volumes:
@@ -100,6 +109,7 @@ services:
     restart: unless-stopped
     init: true
     command: celery -A envirotrack beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    env_file: *backend-env-file
     environment:
       <<: *backend-environment
     volumes:

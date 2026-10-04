@@ -30,6 +30,10 @@ urlpatterns = [
     # URL-шаблоны для фильтрации данных
     path('filterParameters/', views.filterEnvironmentalParameters, name='filter_parameters'),
     path('filterBuildingParameters/', views.filterBuildingEnvironmentalParameters, name='filter_building_parameters'),
+    path('filter_preferences/<str:scope>/', views.filter_preference_view, name='filter_preferences'),
+
+    # URL-шаблоны для фильтрации данных по СИ для контроля параметров
+    path('filterMeasurementInstruments/', views.filterMeasurementInstruments, name='filter_measurement_instruments'),
     
     path('responsibles/', views.getResponsibles, name='responsibles-list'),
     path('parameter_sets/', views.getParameterSets, name='parameter-set-list'),  
@@ -70,4 +74,7 @@ urlpatterns = [
     path('storage_parameter_sets/update/<int:pk>/', views.updateStorageParameterSet, name='update-storage-parameter-set'),
     path('storage_parameter_sets/delete/<int:pk>/', views.deleteStorageParameterSet, name='delete-storage-parameter-set'),
 
+    # URL-шаблоны для загрузки документов
+    path('documents/', views.document_list_view, name='documents-list'),
+    path('responsible_list/', views.responsible_list_list_view, name='responsible-lists-list'),
 ]

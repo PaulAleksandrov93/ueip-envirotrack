@@ -1,0 +1,47 @@
+.export-dialog {
+  width: min(720px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.export-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.export-dialog__head > div {
+  flex: 1;
+}
+
+.export-dialog__head h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.export-dialog__head p {
+  font-size: 13px;
+}
+
+.export-dialog__error {
+  margin-top: 14px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--c-danger-50);
+  font-size: 13px;
+  color: var(--c-danger);
+}
+
+.export-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+}

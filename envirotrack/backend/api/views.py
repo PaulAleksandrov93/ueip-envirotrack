@@ -4,12 +4,10 @@
 """
 
 import logging
+import re
 from django.http import HttpResponseServerError
 from rest_framework.response import Response
-from django.http import HttpResponse
 from rest_framework.decorators import api_view
-from io import BytesIO
-from openpyxl import Workbook
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
@@ -24,10 +22,9 @@ from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Prefetch
 
-from openpyxl.styles import Font, Border, Side, Alignment
-from openpyxl.utils import get_column_letter
-
-from backend.models import Responsible, Room, EnviromentalParameters, MeasurementInstrument, ParameterSet, ExtendedParameterSet
+from backend.models import Responsible, Room, EnviromentalParameters, MeasurementInstrument, ParameterSet, ExtendedParameterSet, \
+                        UserFilterPreference
+from . import excel_export
 from .serializers import EnvironmentalParametersSerializer, RoomSelectSerializer, ResponsibleSerializer, MeasurementInstrumentSerializer, \
                         ParameterSetSerializer, Building, BuildingEnviromentalParameters, BuildingParameterSetSerializer, \
                         BuildingParameterSet, BuildingEnvironmentalParametersSerializer, ExtendedParameterSetSerializer, BuildingSerializer, RoomSerializer, AdditionalParameters, \
@@ -38,11 +35,6 @@ from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger(__name__)
 
-
-def format_humidity(value):
-    if value is None:
-        return ''
-    return round(float(value), 1)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -1238,289 +1230,23 @@ def deleteStorageParameterSet(request, pk):
 # views.py
 @api_view(['GET'])
 def export_parameters_to_excel(request):
+    """Excel по помещениям; принимает те же параметры, что и /api/filterParameters/."""
     try:
-        logger.info(f"Export request from user: {request.user.username}")
-        
-        # Получаем параметры фильтрации из запроса
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-        
-        # Базовый запрос
-        queryset = EnviromentalParameters.objects.all()
-        
-        # Применяем фильтрацию по дате
-        if start_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            queryset = queryset.filter(created_at__date__gte=start_date)
-        if end_date:
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-            queryset = queryset.filter(created_at__date__lte=end_date)
-        
-        # Сортируем по дате создания (сначала новые)
-        queryset = queryset.order_by('-created_at')
-
-        # Создание книги Excel
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Параметры помещений"
-
-        # Стили
-        header_font = Font(bold=True, size=12)
-        border = Border(left=Side(style='thin'), right=Side(style='thin'),
-                       top=Side(style='thin'), bottom=Side(style='thin'))
-        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-
-        # Заголовки
-        columns = [
-            'Номер помещения', 
-            'Ответственный', 
-            'Средства измерений + Годен до', 
-            'Дата создания записи',
-            'Время создания набора параметров',
-            'Температура (°C)', 
-            'Влажность (%)', 
-            'Давление (кПа)', 
-            'Давление (мм рт. ст.)', 
-            'Напряжение (В)', 
-            'Частота (Гц)', 
-            'Радиационный фон'
-        ]
-        
-        for col_num, column_title in enumerate(columns, 1):
-            cell = ws.cell(row=1, column=col_num, value=column_title)
-            cell.font = header_font
-            cell.alignment = center_alignment
-            cell.border = border
-
-        # Установка ширины столбцов
-        column_widths = [15, 20, 25, 15, 20, 15, 15, 15, 15, 15, 15, 15]
-        for i, width in enumerate(column_widths, 1):
-            ws.column_dimensions[get_column_letter(i)].width = width
-
-        row_num = 2
-
-        for param in queryset:
-            # Форматируем средства измерений (максимум 5 СИ)
-            instruments_info = []
-            for i, instrument in enumerate(param.measurement_instruments.all()[:5]):
-                # Используем next_calibration_date из модели
-                valid_until = instrument.next_calibration_date.strftime('%d.%m.%Y') if instrument.next_calibration_date else 'Н/Д'
-                instruments_info.append(f"{instrument.name} {instrument.type} ({instrument.serial_number}) - Годен до: {valid_until}")
-            
-            # Основная строка с параметрами
-            main_row = [
-                param.room.room_number if param.room else '',
-                f'{param.responsible.last_name} {param.responsible.first_name} {param.responsible.patronymic}' if param.responsible else '',
-                '\n'.join(instruments_info),
-                param.created_at.strftime('%d.%m.%Y') if param.created_at else '',
-                '',  # Время создания набора параметров будет заполнено ниже
-                '', '', '', '', '', '', ''  # Пустые значения для параметров
-            ]
-            
-            # Добавляем основную строку
-            for col_num, value in enumerate(main_row, 1):
-                cell = ws.cell(row=row_num, column=col_num, value=value)
-                cell.border = border
-                if col_num == 3:  # Столбец с СИ
-                    cell.alignment = Alignment(vertical='top', wrap_text=True)
-            
-            # Устанавливаем высоту строки для СИ
-            instrument_count = min(param.measurement_instruments.count(), 5)
-            ws.row_dimensions[row_num].height = 20 + (instrument_count * 15)  # Динамическая высота
-            
-            row_num += 1
-
-            # Добавляем параметры из parameter_sets
-            for param_set in param.parameter_sets.all():
-                ws.append([
-                    '', '', '', '',  # Пустые значения для основных полей
-                    param_set.time.strftime('%H:%M:%S') if param_set.time else '',
-                    param_set.temperature_celsius if param_set.temperature_celsius is not None else '',
-                    format_humidity(param_set.humidity_percentage),
-                    param_set.pressure_kpa if param_set.pressure_kpa is not None else '',
-                    param_set.pressure_mmhg if param_set.pressure_mmhg is not None else '',
-                    '', '', ''  # Пустые значения для напряжения, частоты, радиации
-                ])
-                # Применяем стили к новой строке
-                for col_num in range(1, 13):
-                    ws.cell(row=row_num, column=col_num).border = border
-                row_num += 1
-
-            # Добавляем параметры из extended_parameter_sets
-            for extended_param_set in param.extended_parameter_sets.all():
-                ws.append([
-                    '', '', '', '',  # Пустые значения для основных полей
-                    extended_param_set.time.strftime('%H:%M:%S') if extended_param_set.time else '',
-                    extended_param_set.temperature_celsius if extended_param_set.temperature_celsius is not None else '',
-                    format_humidity(extended_param_set.humidity_percentage),
-                    extended_param_set.pressure_kpa if extended_param_set.pressure_kpa is not None else '',
-                    extended_param_set.pressure_mmhg if extended_param_set.pressure_mmhg is not None else '',
-                    extended_param_set.voltage if extended_param_set.voltage is not None else '',
-                    extended_param_set.frequency if extended_param_set.frequency is not None else '',
-                    extended_param_set.radiation if extended_param_set.radiation is not None else ''
-                ])
-                # Применяем стили к новой строке
-                for col_num in range(1, 13):
-                    ws.cell(row=row_num, column=col_num).border = border
-                row_num += 1
-                
-            # Добавляем параметры из parameter_sets_for_storage
-            for param_set_for_storage in param.parameter_sets_for_storage.all():
-                ws.append([
-                    '', '', '', '',  # Пустые значения для основных полей
-                    param_set_for_storage.time.strftime('%H:%M:%S') if param_set_for_storage.time else '',
-                    param_set_for_storage.temperature_celsius if param_set_for_storage.temperature_celsius is not None else '',
-                    format_humidity(param_set_for_storage.humidity_percentage),
-                    '', '', '', '', ''  # Пустые значения для остальных параметров
-                ])
-                # Применяем стили к новой строке
-                for col_num in range(1, 13):
-                    ws.cell(row=row_num, column=col_num).border = border
-                row_num += 1
-
-        # Формируем имя файла
-        current_date = datetime.now().strftime('%d.%m.%Y')
-        filename = f'Параметры по помещениям от {current_date}.xlsx'
-
-        # Создание HTTP-ответа
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-        buffer = BytesIO()
-        wb.save(buffer)
-        buffer.seek(0)
-        response.write(buffer.getvalue())
-        buffer.close()
-
-        return response
-
+        return excel_export.export_rooms(filtered_room_records(request), request.query_params)
     except Exception as e:
-        logger.error(f"Error exporting parameters: {str(e)}")
-        return HttpResponseServerError("Internal Server Error")
+        logger.error(f'Error exporting parameters: {e}', exc_info=True)
+        return HttpResponseServerError('Internal Server Error')
 
-# Выгрузка в Excel данных о параметрах для зданий
 
 @api_view(['GET'])
 def export_parameters_for_buildings_to_excel(request):
+    """Excel по зданиям; принимает те же параметры, что и /api/filterBuildingParameters/."""
     try:
-        logger.info(f"Export request from user: {request.user.username}")
-        
-        # Получаем параметры фильтрации из запроса
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-        
-        # Базовый запрос
-        queryset = BuildingEnviromentalParameters.objects.all()
-        
-        # Применяем фильтрацию по дате
-        if start_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            queryset = queryset.filter(created_at__date__gte=start_date)
-        if end_date:
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-            queryset = queryset.filter(created_at__date__lte=end_date)
-        
-        # Сортируем по дате создания (сначала новые)
-        queryset = queryset.order_by('-created_at')
-
-        # Создание книги Excel
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Параметры зданий"
-
-        # Стили
-        header_font = Font(bold=True, size=12)
-        border = Border(left=Side(style='thin'), right=Side(style='thin'),
-                       top=Side(style='thin'), bottom=Side(style='thin'))
-        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-
-        # Заголовки
-        columns = [
-            'Номер здания', 
-            'Ответственный', 
-            'Средства измерений + Годен до', 
-            'Дата создания записи',
-            'Время создания набора параметров',
-            'Напряжение (В)', 
-            'Частота (Гц)'
-        ]
-        
-        for col_num, column_title in enumerate(columns, 1):
-            cell = ws.cell(row=1, column=col_num, value=column_title)
-            cell.font = header_font
-            cell.alignment = center_alignment
-            cell.border = border
-
-        # Установка ширины столбцов
-        column_widths = [15, 20, 25, 15, 20, 15, 15]
-        for i, width in enumerate(column_widths, 1):
-            ws.column_dimensions[get_column_letter(i)].width = width
-
-        row_num = 2
-
-        for param in queryset:
-            # Форматируем средства измерений (максимум 5 СИ)
-            instruments_info = []
-            for i, instrument in enumerate(param.measurement_instruments.all()[:5]):
-                # Используем next_calibration_date из модели
-                valid_until = instrument.next_calibration_date.strftime('%d.%m.%Y') if instrument.next_calibration_date else 'Н/Д'
-                instruments_info.append(f"{instrument.name} {instrument.type} ({instrument.serial_number}) - Годен до: {valid_until}")
-            
-            # Основная строка с параметрами
-            main_row = [
-                param.building.building_number if param.building else '',
-                f'{param.responsible.last_name} {param.responsible.first_name} {param.responsible.patronymic}' if param.responsible else '',
-                '\n'.join(instruments_info),
-                param.created_at.strftime('%d.%m.%Y') if param.created_at else '',
-                '',  # Время создания набора параметров будет заполнено ниже
-                '', ''  # Пустые значения для параметров
-            ]
-            
-            # Добавляем основную строку
-            for col_num, value in enumerate(main_row, 1):
-                cell = ws.cell(row=row_num, column=col_num, value=value)
-                cell.border = border
-                if col_num == 3:  # Столбец с СИ
-                    cell.alignment = Alignment(vertical='top', wrap_text=True)
-            
-            # Устанавливаем высоту строки для СИ
-            instrument_count = min(param.measurement_instruments.count(), 5)
-            ws.row_dimensions[row_num].height = 20 + (instrument_count * 15)  # Динамическая высота
-            
-            row_num += 1
-
-            # Добавляем параметры из parameter_sets
-            for param_set in param.parameter_sets.all():
-                ws.append([
-                    '', '', '', '',  # Пустые значения для основных полей
-                    param_set.time.strftime('%H:%M:%S') if param_set.time else '',
-                    param_set.voltage if param_set.voltage is not None else '',
-                    param_set.frequency if param_set.frequency is not None else ''
-                ])
-                # Применяем стили к новой строке
-                for col_num in range(1, 8):
-                    ws.cell(row=row_num, column=col_num).border = border
-                row_num += 1
-
-        # Формируем имя файла
-        current_date = datetime.now().strftime('%d.%m.%Y')
-        filename = f'Параметры по зданиям от {current_date}.xlsx'
-
-        # Создание HTTP-ответа
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-        buffer = BytesIO()
-        wb.save(buffer)
-        buffer.seek(0)
-        response.write(buffer.getvalue())
-        buffer.close()
-
-        return response
-
+        return excel_export.export_buildings(filtered_building_records(request), request.query_params)
     except Exception as e:
-        logger.error(f"Error exporting building parameters: {str(e)}")
-        return HttpResponseServerError("Internal Server Error")
+        logger.error(f'Error exporting building parameters: {e}', exc_info=True)
+        return HttpResponseServerError('Internal Server Error')
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1849,78 +1575,144 @@ def deleteBuildingEnvironmentalParameters(request, pk):
         logger.error(f"Произошла ошибка во время удаления параметров окружающей среды здания: {e}", exc_info=True)
         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+def _split_ids(value):
+    """'1,2,x,3' -> [1, 2, 3]"""
+    if not value:
+        return []
+    ids = []
+    for part in str(value).split(','):
+        part = part.strip()
+        if part.isdigit():
+            ids.append(int(part))
+    return ids
+
+
+def _current_responsible(user):
+    if not user or not user.is_authenticated:
+        return None
+    return Responsible.objects.filter(user=user).first()
+
+
+def _apply_date_filters(queryset, params):
+    date = params.get('date')
+    start_date = params.get('start_date')
+    end_date = params.get('end_date')
+
+    if date:
+        queryset = queryset.filter(created_at=date)
+    if start_date:
+        queryset = queryset.filter(created_at__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(created_at__lte=end_date)
+    return queryset
+
+
+def filtered_room_records(request):
+    """
+    Записи по помещениям по параметрам запроса — общий отбор для списка и Excel.
+
+    Параметры: responsible=1,2 · rooms=10,11 (id помещений) · room=101 (номер, устаревший) ·
+    mine=1 (помещения и записи текущего ответственного) · date · start_date · end_date.
+    """
+    params = request.query_params
+    parameters = EnviromentalParameters.objects.all()
+
+    responsible_ids = _split_ids(params.get('responsible'))
+    if responsible_ids:
+        parameters = parameters.filter(responsible_id__in=responsible_ids)
+
+    room_ids = _split_ids(params.get('rooms'))
+    if room_ids:
+        parameters = parameters.filter(room_id__in=room_ids)
+
+    room_number = params.get('room')
+    if room_number:
+        parameters = parameters.filter(room__room_number=room_number)
+
+    if params.get('mine') in ('1', 'true'):
+        responsible = _current_responsible(request.user)
+        if responsible is None:
+            parameters = parameters.none()
+        else:
+            parameters = parameters.filter(
+                Q(responsible=responsible) | Q(room__responsible_persons=responsible)
+            ).distinct()
+
+    parameters = _apply_date_filters(parameters, params)
+
+    return (
+        parameters
+        .select_related('room', 'room__building', 'room__additional_parameters', 'responsible')
+        .prefetch_related(
+            'measurement_instruments',
+            'parameter_sets',
+            'extended_parameter_sets',
+            'parameter_sets_for_storage',
+        )
+        .order_by('-created_at', '-id')
+    )
+
+
+def filtered_building_records(request):
+    """
+    Записи по зданиям по параметрам запроса — общий отбор для списка и Excel.
+
+    Параметры: responsible=1,2 · buildings=3,4 (id зданий) · building=12 (номер, устаревший) ·
+    mine=1 · date · start_date · end_date.
+    """
+    params = request.query_params
+    parameters = BuildingEnviromentalParameters.objects.all()
+
+    responsible_ids = _split_ids(params.get('responsible'))
+    if responsible_ids:
+        parameters = parameters.filter(responsible_id__in=responsible_ids)
+
+    building_ids = _split_ids(params.get('buildings'))
+    if building_ids:
+        parameters = parameters.filter(building_id__in=building_ids)
+
+    building_number = params.get('building')
+    if building_number:
+        parameters = parameters.filter(building__building_number=building_number)
+
+    if params.get('mine') in ('1', 'true'):
+        responsible = _current_responsible(request.user)
+        if responsible is None:
+            parameters = parameters.none()
+        else:
+            parameters = parameters.filter(
+                Q(responsible=responsible) | Q(building__responsible_persons=responsible)
+            ).distinct()
+
+    parameters = _apply_date_filters(parameters, params)
+
+    return (
+        parameters
+        .select_related('building', 'responsible', 'responsible__profession', 'created_by', 'modified_by')
+        .prefetch_related('measurement_instruments', 'parameter_sets')
+        .order_by('-created_at', '-id')
+    )
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterEnvironmentalParameters(request):
+    """Фильтрация записей по помещениям (см. filtered_room_records)."""
     try:
-        user = request.user
-        logger.info(f"Запрос на фильтрацию параметров окружающей среды от пользователя: {user.username}")
-
-        responsible_id = request.query_params.get('responsible')
-        room_number = request.query_params.get('room')
-        date = request.query_params.get('date')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, room_number={room_number}, date={date}, start_date={start_date}, end_date={end_date}")
-
-        parameters = EnviromentalParameters.objects.all()
-
-        if responsible_id:
-            parameters = parameters.filter(responsible__id=responsible_id)
-
-        if room_number:
-            parameters = parameters.filter(room__room_number=room_number)
-
-        if date:
-            parameters = parameters.filter(created_at=date)
-
-        if start_date and end_date:
-            parameters = parameters.filter(created_at__range=[start_date, end_date])
-
-        parameters = parameters.order_by('-created_at')
-
-        serializer = EnvironmentalParametersSerializer(parameters, many=True)
-        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
+        serializer = EnvironmentalParametersListSerializer(filtered_room_records(request), many=True)
         return Response(serializer.data)
 
     except Exception as e:
         logger.error(f"Произошла ошибка при фильтрации параметров: {e}", exc_info=True)
         return Response({'error': 'Произошла ошибка при фильтрации параметров'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterBuildingEnvironmentalParameters(request):
+    """Фильтрация записей по зданиям (см. filtered_building_records)."""
     try:
-        user = request.user
-        logger.info(f"Запрос на фильтрацию параметров окружающей среды для зданий от пользователя: {user.username}")
-
-        responsible_id = request.query_params.get('responsible')
-        building_number = request.query_params.get('building')
-        date = request.query_params.get('date')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, building_number={building_number}, date={date}, start_date={start_date}, end_date={end_date}")
-
-        parameters = BuildingEnviromentalParameters.objects.all()
-
-        if responsible_id:
-            parameters = parameters.filter(responsible__id=responsible_id)
-
-        if building_number:
-            parameters = parameters.filter(building__building_number=building_number)
-
-        if date:
-            parameters = parameters.filter(created_at=date)
-
-        if start_date and end_date:
-            parameters = parameters.filter(created_at__range=[start_date, end_date])
-
-        parameters = parameters.order_by('-created_at')
-
-        serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True)
-        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
+        serializer = BuildingEnvironmentalParametersSerializer(filtered_building_records(request), many=True)
         return Response(serializer.data)
 
     except Exception as e:
@@ -1997,3 +1789,55 @@ def responsible_list_list_view(request):
         return Response(None)
     serializer = ResponsibleListSerializer(document, context={'request': request})
     return Response(serializer.data)
+
+
+FILTER_LIST_KEYS = {
+    UserFilterPreference.SCOPE_ROOMS: ('responsible', 'rooms'),
+    UserFilterPreference.SCOPE_BUILDINGS: ('responsible', 'buildings'),
+}
+DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def _clean_filters(scope, raw):
+    if not isinstance(raw, dict):
+        raw = {}
+    cleaned = {}
+    for key in FILTER_LIST_KEYS[scope]:
+        values = raw.get(key) or []
+        if not isinstance(values, list):
+            values = [values]
+        cleaned[key] = sorted({int(v) for v in values if str(v).isdigit()})
+    cleaned['mine'] = bool(raw.get('mine'))
+    for key in ('start_date', 'end_date'):
+        value = raw.get(key) or ''
+        cleaned[key] = value if isinstance(value, str) and DATE_RE.match(value) else ''
+    return cleaned
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def filter_preference_view(request, scope):
+    """Фильтр списка, закреплённый за пользователем (общий для всех его браузеров)."""
+    if scope not in FILTER_LIST_KEYS:
+        return Response({'error': 'Неизвестный раздел'}, status=status.HTTP_404_NOT_FOUND)
+
+    responsible = _current_responsible(request.user)
+
+    if request.method == 'DELETE':
+        UserFilterPreference.objects.filter(user=request.user, scope=scope).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == 'PUT':
+        filters = _clean_filters(scope, request.data.get('filters'))
+        preference, _ = UserFilterPreference.objects.update_or_create(
+            user=request.user, scope=scope, defaults={'filters': filters},
+        )
+    else:
+        preference = UserFilterPreference.objects.filter(user=request.user, scope=scope).first()
+
+    return Response({
+        'scope': scope,
+        'filters': _clean_filters(scope, preference.filters) if preference else None,
+        'updated_at': preference.updated_at if preference else None,
+        'responsible_id': responsible.id if responsible else None,
+    })

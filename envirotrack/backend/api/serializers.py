@@ -59,12 +59,14 @@ class AdditionalParametersSerializer(serializers.ModelSerializer):
 
 class RoomSelectSerializer(serializers.ModelSerializer):
     additional_parameters = AdditionalParametersSerializer(required=False)
+    building_number = serializers.CharField(source='building.building_number', read_only=True, default=None)
 
     class Meta:
         model = Room
-        fields = ['id', 'room_number', 'temperature_min', 'temperature_max', 'humidity_min',
+        fields = ['id', 'room_number', 'building', 'building_number', 'temperature_min', 'temperature_max', 'humidity_min',
                   'humidity_max', 'pressure_min_kpa', 'pressure_max_kpa',
                   'pressure_min_mmhg', 'pressure_max_mmhg', 'is_storage', 'has_additional_parameters', 'additional_parameters']
+        read_only_fields = ['building']
 
     def create(self, validated_data):
         validated_data.pop('has_additional_parameters', None)
@@ -73,6 +75,8 @@ class RoomSelectSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data.pop('has_additional_parameters', None)
         return super().update(instance, validated_data)
+
+
 # Оптимизированный сериализатор для списка записей
 class EnvironmentalParametersListSerializer(serializers.ModelSerializer):
     # room = SimpleRoomSerializer(read_only=True)
@@ -142,25 +146,6 @@ class RoomNumberSerializer(serializers.ModelSerializer):
         
         
 
-
-class RoomSelectSerializer(serializers.ModelSerializer):
-    additional_parameters = AdditionalParametersSerializer(required=False)
-
-    class Meta:
-        model = Room
-        fields = ['id', 'room_number', 'temperature_min', 'temperature_max', 'humidity_min',
-                  'humidity_max', 'pressure_min_kpa', 'pressure_max_kpa',
-                  'pressure_min_mmhg', 'pressure_max_mmhg', 'is_storage', 'has_additional_parameters', 'additional_parameters']
-
-    def create(self, validated_data):
-        validated_data.pop('has_additional_parameters', None)
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        validated_data.pop('has_additional_parameters', None)
-        return super().update(instance, validated_data)
-    
-    
 
 class BuildingSelectSerializer(serializers.ModelSerializer):
     class Meta:
