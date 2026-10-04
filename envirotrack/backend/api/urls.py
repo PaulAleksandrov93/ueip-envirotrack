@@ -30,6 +30,7 @@ urlpatterns = [
     # URL-шаблоны для фильтрации данных
     path('filterParameters/', views.filterEnvironmentalParameters, name='filter_parameters'),
     path('filterBuildingParameters/', views.filterBuildingEnvironmentalParameters, name='filter_building_parameters'),
+    path('filter_preferences/<str:scope>/', views.filter_preference_view, name='filter_preferences'),
     
     path('responsibles/', views.getResponsibles, name='responsibles-list'),
     path('parameter_sets/', views.getParameterSets, name='parameter-set-list'),  

@@ -4,6 +4,7 @@
 """
 
 import logging
+import re
 from django.http import HttpResponseServerError
 from rest_framework.response import Response
 from django.http import HttpResponse
@@ -27,7 +28,8 @@ from django.db.models import Prefetch
 from openpyxl.styles import Font, Border, Side, Alignment
 from openpyxl.utils import get_column_letter
 
-from backend.models import Responsible, Room, EnviromentalParameters, MeasurementInstrument, ParameterSet, ExtendedParameterSet
+from backend.models import Responsible, Room, EnviromentalParameters, MeasurementInstrument, ParameterSet, ExtendedParameterSet, \
+                        UserFilterPreference
 from .serializers import EnvironmentalParametersSerializer, RoomSelectSerializer, ResponsibleSerializer, MeasurementInstrumentSerializer, \
                         ParameterSetSerializer, Building, BuildingEnviromentalParameters, BuildingParameterSetSerializer, \
                         BuildingParameterSet, BuildingEnvironmentalParametersSerializer, ExtendedParameterSetSerializer, BuildingSerializer, RoomSerializer, AdditionalParameters, \
@@ -1849,78 +1851,138 @@ def deleteBuildingEnvironmentalParameters(request, pk):
         logger.error(f"Произошла ошибка во время удаления параметров окружающей среды здания: {e}", exc_info=True)
         return Response({'error': 'Внутренняя ошибка сервера'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+def _split_ids(value):
+    """'1,2,x,3' -> [1, 2, 3]"""
+    if not value:
+        return []
+    ids = []
+    for part in str(value).split(','):
+        part = part.strip()
+        if part.isdigit():
+            ids.append(int(part))
+    return ids
+
+
+def _current_responsible(user):
+    if not user or not user.is_authenticated:
+        return None
+    return Responsible.objects.filter(user=user).first()
+
+
+def _apply_date_filters(queryset, params):
+    date = params.get('date')
+    start_date = params.get('start_date')
+    end_date = params.get('end_date')
+
+    if date:
+        queryset = queryset.filter(created_at=date)
+    if start_date:
+        queryset = queryset.filter(created_at__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(created_at__lte=end_date)
+    return queryset
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterEnvironmentalParameters(request):
+    """
+    Фильтрация записей по помещениям.
+
+    Параметры: responsible=1,2 · rooms=10,11 (id помещений) · room=101 (номер, устаревший) ·
+    mine=1 (помещения и записи текущего ответственного) · date · start_date · end_date.
+    """
     try:
-        user = request.user
-        logger.info(f"Запрос на фильтрацию параметров окружающей среды от пользователя: {user.username}")
-
-        responsible_id = request.query_params.get('responsible')
-        room_number = request.query_params.get('room')
-        date = request.query_params.get('date')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, room_number={room_number}, date={date}, start_date={start_date}, end_date={end_date}")
-
+        params = request.query_params
         parameters = EnviromentalParameters.objects.all()
 
-        if responsible_id:
-            parameters = parameters.filter(responsible__id=responsible_id)
+        responsible_ids = _split_ids(params.get('responsible'))
+        if responsible_ids:
+            parameters = parameters.filter(responsible_id__in=responsible_ids)
 
+        room_ids = _split_ids(params.get('rooms'))
+        if room_ids:
+            parameters = parameters.filter(room_id__in=room_ids)
+
+        room_number = params.get('room')
         if room_number:
             parameters = parameters.filter(room__room_number=room_number)
 
-        if date:
-            parameters = parameters.filter(created_at=date)
+        if params.get('mine') in ('1', 'true'):
+            responsible = _current_responsible(request.user)
+            if responsible is None:
+                parameters = parameters.none()
+            else:
+                parameters = parameters.filter(
+                    Q(responsible=responsible) | Q(room__responsible_persons=responsible)
+                ).distinct()
 
-        if start_date and end_date:
-            parameters = parameters.filter(created_at__range=[start_date, end_date])
+        parameters = _apply_date_filters(parameters, params)
 
-        parameters = parameters.order_by('-created_at')
+        parameters = (
+            parameters
+            .select_related('room', 'room__building', 'room__additional_parameters', 'responsible')
+            .prefetch_related(
+                'measurement_instruments',
+                'parameter_sets',
+                'extended_parameter_sets',
+                'parameter_sets_for_storage',
+            )
+            .order_by('-created_at', '-id')
+        )
 
-        serializer = EnvironmentalParametersSerializer(parameters, many=True)
-        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
+        serializer = EnvironmentalParametersListSerializer(parameters, many=True)
         return Response(serializer.data)
 
     except Exception as e:
         logger.error(f"Произошла ошибка при фильтрации параметров: {e}", exc_info=True)
         return Response({'error': 'Произошла ошибка при фильтрации параметров'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def filterBuildingEnvironmentalParameters(request):
+    """
+    Фильтрация записей по зданиям.
+
+    Параметры: responsible=1,2 · buildings=3,4 (id зданий) · building=12 (номер, устаревший) ·
+    mine=1 · date · start_date · end_date.
+    """
     try:
-        user = request.user
-        logger.info(f"Запрос на фильтрацию параметров окружающей среды для зданий от пользователя: {user.username}")
-
-        responsible_id = request.query_params.get('responsible')
-        building_number = request.query_params.get('building')
-        date = request.query_params.get('date')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        logger.info(f"Параметры фильтрации: responsible_id={responsible_id}, building_number={building_number}, date={date}, start_date={start_date}, end_date={end_date}")
-
+        params = request.query_params
         parameters = BuildingEnviromentalParameters.objects.all()
 
-        if responsible_id:
-            parameters = parameters.filter(responsible__id=responsible_id)
+        responsible_ids = _split_ids(params.get('responsible'))
+        if responsible_ids:
+            parameters = parameters.filter(responsible_id__in=responsible_ids)
 
+        building_ids = _split_ids(params.get('buildings'))
+        if building_ids:
+            parameters = parameters.filter(building_id__in=building_ids)
+
+        building_number = params.get('building')
         if building_number:
             parameters = parameters.filter(building__building_number=building_number)
 
-        if date:
-            parameters = parameters.filter(created_at=date)
+        if params.get('mine') in ('1', 'true'):
+            responsible = _current_responsible(request.user)
+            if responsible is None:
+                parameters = parameters.none()
+            else:
+                parameters = parameters.filter(
+                    Q(responsible=responsible) | Q(building__responsible_persons=responsible)
+                ).distinct()
 
-        if start_date and end_date:
-            parameters = parameters.filter(created_at__range=[start_date, end_date])
+        parameters = _apply_date_filters(parameters, params)
 
-        parameters = parameters.order_by('-created_at')
+        parameters = (
+            parameters
+            .select_related('building', 'responsible', 'responsible__profession', 'created_by', 'modified_by')
+            .prefetch_related('measurement_instruments', 'parameter_sets')
+            .order_by('-created_at', '-id')
+        )
 
         serializer = BuildingEnvironmentalParametersSerializer(parameters, many=True)
-        logger.info(f"Фильтрация завершена успешно, найдено {parameters.count()} параметров")
         return Response(serializer.data)
 
     except Exception as e:
@@ -1997,3 +2059,55 @@ def responsible_list_list_view(request):
         return Response(None)
     serializer = ResponsibleListSerializer(document, context={'request': request})
     return Response(serializer.data)
+
+
+FILTER_LIST_KEYS = {
+    UserFilterPreference.SCOPE_ROOMS: ('responsible', 'rooms'),
+    UserFilterPreference.SCOPE_BUILDINGS: ('responsible', 'buildings'),
+}
+DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def _clean_filters(scope, raw):
+    if not isinstance(raw, dict):
+        raw = {}
+    cleaned = {}
+    for key in FILTER_LIST_KEYS[scope]:
+        values = raw.get(key) or []
+        if not isinstance(values, list):
+            values = [values]
+        cleaned[key] = sorted({int(v) for v in values if str(v).isdigit()})
+    cleaned['mine'] = bool(raw.get('mine'))
+    for key in ('start_date', 'end_date'):
+        value = raw.get(key) or ''
+        cleaned[key] = value if isinstance(value, str) and DATE_RE.match(value) else ''
+    return cleaned
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def filter_preference_view(request, scope):
+    """Фильтр списка, закреплённый за пользователем (общий для всех его браузеров)."""
+    if scope not in FILTER_LIST_KEYS:
+        return Response({'error': 'Неизвестный раздел'}, status=status.HTTP_404_NOT_FOUND)
+
+    responsible = _current_responsible(request.user)
+
+    if request.method == 'DELETE':
+        UserFilterPreference.objects.filter(user=request.user, scope=scope).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == 'PUT':
+        filters = _clean_filters(scope, request.data.get('filters'))
+        preference, _ = UserFilterPreference.objects.update_or_create(
+            user=request.user, scope=scope, defaults={'filters': filters},
+        )
+    else:
+        preference = UserFilterPreference.objects.filter(user=request.user, scope=scope).first()
+
+    return Response({
+        'scope': scope,
+        'filters': _clean_filters(scope, preference.filters) if preference else None,
+        'updated_at': preference.updated_at if preference else None,
+        'responsible_id': responsible.id if responsible else None,
+    })

@@ -19,6 +19,7 @@ from .models import (
     ParameterSetForStorage,
     Document,
     ResponsibleList,
+    UserFilterPreference,
 )
 
 admin.site.site_header = 'Администрирование журнала регистрации параметров окружающей среды'
@@ -171,6 +172,14 @@ class ResponsibleListAdmin(LatestFileAdminMixin, admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('-uploaded_at',)
     readonly_fields = ('uploaded_at',)
+
+
+@admin.register(UserFilterPreference)
+class UserFilterPreferenceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'scope', 'updated_at')
+    list_filter = ('scope',)
+    search_fields = ('user__username', 'user__last_name')
+    readonly_fields = ('updated_at',)
 
 
 class TranslatedUserAdmin(DjangoUserAdmin):
