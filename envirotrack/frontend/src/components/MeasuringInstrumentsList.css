@@ -12,8 +12,6 @@
 }
 
 .si-table__head {
-  position: sticky;
-  top: 60px;
   background: var(--c-surface-2);
   border-bottom: 1px solid var(--c-border);
   font-size: 11px;
