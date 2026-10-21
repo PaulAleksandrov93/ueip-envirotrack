@@ -5,7 +5,10 @@ from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.models import User, Group
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import FileExtensionValidator
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
+from datetime import timedelta
 
 from .models import (
     Responsible,
@@ -28,6 +31,7 @@ from .models import (
 admin.site.site_header = 'Администрирование журнала регистрации параметров окружающей среды'
 admin.site.site_title = 'Администрирование журнала'
 admin.site.index_title = 'Панель управления'
+admin.site.site_url = '/rooms-parameters'
 
 User._meta.verbose_name = 'Пользователь'
 User._meta.verbose_name_plural = 'Пользователи'
@@ -158,12 +162,56 @@ class RoomAdmin(admin.ModelAdmin):
         return super().change_view(request, object_id, form_url, extra_context)
 
 
+class CalibrationStatusFilter(admin.SimpleListFilter):
+    title = 'поверка'
+    parameter_name = 'calibration'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('expired', 'Просрочена'),
+            ('soon', 'Истекает в течение 30 дней'),
+            ('ok', 'Действует'),
+        )
+
+    def queryset(self, request, queryset):
+        today = timezone.localdate()
+        if self.value() == 'expired':
+            return queryset.filter(next_calibration_date__lt=today)
+        if self.value() == 'soon':
+            return queryset.filter(next_calibration_date__gte=today, next_calibration_date__lte=today + timedelta(days=30))
+        if self.value() == 'ok':
+            return queryset.filter(next_calibration_date__gt=today + timedelta(days=30))
+        return queryset
+
+
 @admin.register(MeasurementInstrument)
 class MeasurementInstrumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', 'serial_number', 'calibration_date', 'next_calibration_date', 'suitability')
-    list_filter = ('suitability', 'type')
-    search_fields = ('name', 'type', 'serial_number', 'registration_number')
+    list_display = ('name', 'type', 'serial_number', 'registration_number', 'calibration_date', 'next_calibration_date', 'calibration_status')
+    list_display_links = ('name', 'type')
+    list_filter = (CalibrationStatusFilter, 'type', 'year_of_manufacture')
+    search_fields = ('name', 'type', 'serial_number', 'registration_number', 'metrological_characteristics')
     date_hierarchy = 'calibration_date'
+    ordering = ('next_calibration_date',)
+    readonly_fields = ('next_calibration_date', 'suitability')
+    fieldsets = (
+        ('Средство измерений', {'fields': ('name', 'type', 'serial_number', 'registration_number', 'year_of_manufacture')}),
+        ('Метрология', {'fields': ('metrological_characteristics',)}),
+        ('Поверка', {
+            'fields': ('calibration_date', 'calibration_interval', 'next_calibration_date', 'suitability'),
+            'description': 'Дата следующей поверки и пригодность рассчитываются автоматически при сохранении.',
+        }),
+    )
+
+    @admin.display(description='Статус', ordering='next_calibration_date')
+    def calibration_status(self, obj):
+        if not obj.next_calibration_date:
+            return format_html('<span class="et-badge">{}</span>', 'нет даты')
+        days = (obj.next_calibration_date - timezone.localdate()).days
+        if days < 0:
+            return format_html('<span class="et-badge et-badge--danger">просрочена на {} дн.</span>', -days)
+        if days <= 30:
+            return format_html('<span class="et-badge et-badge--warning">осталось {} дн.</span>', days)
+        return format_html('<span class="et-badge et-badge--success">{}</span>', 'годен')
 
 
 @admin.register(ParameterSet)
@@ -242,3 +290,91 @@ admin.site.unregister(User)
 admin.site.unregister(Group)
 admin.site.register(User, TranslatedUserAdmin)
 admin.site.register(Group, TranslatedGroupAdmin)
+
+
+# ---------- Главная страница: разделы по смыслу и сводка ----------
+
+ADMIN_SECTIONS = (
+    ('journal', 'Журнал', ('enviromentalparameters', 'buildingenviromentalparameters')),
+    ('instruments', 'Средства измерений', ('measurementinstrument',)),
+    ('directories', 'Справочники', ('building', 'room', 'responsible', 'profession')),
+    ('documents', 'Документы для пользователей', ('document', 'responsiblelist')),
+    ('access', 'Пользователи и доступ', ('user', 'group', 'userfilterpreference')),
+    ('service', 'Служебные данные', ('parameterset', 'extendedparameterset', 'parametersetforstorage', 'buildingparameterset')),
+)
+# Токены JWT ведутся автоматически, вручную их не правят.
+HIDDEN_ADMIN_APPS = {'token_blacklist'}
+
+_default_get_app_list = admin.site.get_app_list
+
+
+def grouped_app_list(request, app_label=None):
+    app_list = _default_get_app_list(request, app_label)
+    if app_label:
+        return app_list
+
+    models = {}
+    for app in app_list:
+        if app['app_label'] in HIDDEN_ADMIN_APPS:
+            continue
+        for model in app['models']:
+            models[model['object_name'].lower()] = model
+
+    sections = []
+    for label, title, names in ADMIN_SECTIONS:
+        section_models = [models.pop(name) for name in names if name in models]
+        if section_models:
+            sections.append({
+                'name': title, 'app_label': label, 'app_url': section_models[0]['admin_url'],
+                'has_module_perms': True, 'models': section_models,
+            })
+    if models:
+        sections.append({
+            'name': 'Прочее', 'app_label': 'other', 'app_url': '', 'has_module_perms': True,
+            'models': sorted(models.values(), key=lambda m: m['name']),
+        })
+    return sections
+
+
+admin.site.get_app_list = grouped_app_list
+
+
+def dashboard_context():
+    today = timezone.localdate()
+    week_start = today - timedelta(days=6)
+    soon = today + timedelta(days=30)
+    instruments = MeasurementInstrument.objects.all()
+
+    documents = []
+    for model, title in ((Document, 'Руководство пользователя'), (ResponsibleList, 'Список ответственных')):
+        obj = model.objects.order_by('-uploaded_at').first()
+        documents.append({
+            'title': title,
+            'obj': obj,
+            'file_name': obj.file.name.rsplit('/', 1)[-1] if obj and obj.file else '',
+            'add_url': reverse(f'admin:backend_{model._meta.model_name}_add'),
+        })
+
+    return {
+        'today': today,
+        'week_start': week_start,
+        'rooms_today': EnviromentalParameters.objects.filter(created_at=today).count(),
+        'rooms_week': EnviromentalParameters.objects.filter(created_at__gte=week_start).count(),
+        'buildings_today': BuildingEnviromentalParameters.objects.filter(created_at=today).count(),
+        'buildings_week': BuildingEnviromentalParameters.objects.filter(created_at__gte=week_start).count(),
+        'instruments_total': instruments.count(),
+        'instruments_expired': instruments.filter(next_calibration_date__lt=today).count(),
+        'instruments_soon': instruments.filter(next_calibration_date__gte=today, next_calibration_date__lte=soon).count(),
+        'upcoming': instruments.filter(next_calibration_date__lte=soon).order_by('next_calibration_date')[:8],
+        'documents': documents,
+    }
+
+
+_default_index = admin.site.index
+
+
+def index_with_dashboard(request, extra_context=None):
+    return _default_index(request, {**(extra_context or {}), 'dashboard': dashboard_context()})
+
+
+admin.site.index = index_with_dashboard
