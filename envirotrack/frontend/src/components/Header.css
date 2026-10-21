@@ -115,7 +115,8 @@
   animation: menu-in 0.14s ease;
 }
 
-.user-menu__dropdown button {
+.user-menu__dropdown button,
+.user-menu__dropdown .user-menu__link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -130,16 +131,19 @@
   cursor: pointer;
 }
 
-.user-menu__dropdown button svg {
+.user-menu__dropdown button svg,
+.user-menu__dropdown .user-menu__link svg {
   color: var(--c-muted);
 }
 
-.user-menu__dropdown button:hover {
+.user-menu__dropdown button:hover,
+.user-menu__dropdown .user-menu__link:hover {
   background: var(--c-brand-50);
   color: var(--c-brand);
 }
 
-.user-menu__dropdown button:hover svg {
+.user-menu__dropdown button:hover svg,
+.user-menu__dropdown .user-menu__link:hover svg {
   color: var(--c-brand);
 }
 

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiBookOpen, FiChevronDown, FiInfo, FiLogIn, FiLogOut, FiUsers } from 'react-icons/fi';
+import { FiBookOpen, FiChevronDown, FiInfo, FiLogIn, FiLogOut, FiUpload, FiUsers } from 'react-icons/fi';
 import AuthContext from '../context/AuthContext';
 import { ReactComponent as WhiteLogo } from '../assets/rosatom_white_logo.svg';
 import ErrorMessageModal from './ErrorMessageModal';
@@ -17,11 +17,20 @@ const fetchLatestDocument = async (url) => {
   }
 };
 
+const extensionOf = (url) => {
+  const match = String(url).split('?')[0].match(/\.([a-z0-9]{2,5})$/i);
+  return match ? `.${match[1].toLowerCase()}` : '';
+};
+
+const downloadName = (documentData, fallbackName) => {
+  const ext = extensionOf(documentData.file);
+  const base = (documentData.name || fallbackName).trim();
+  return ext && !base.toLowerCase().endsWith(ext) ? `${base}${ext}` : base;
+};
+
 const Header = () => {
   const { user, logoutUser } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userGuide, setUserGuide] = useState(null);
-  const [responsiblesList, setResponsiblesList] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -34,20 +43,16 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    fetchLatestDocument('/api/documents/').then(setUserGuide);
-    fetchLatestDocument('/api/responsible_list/').then(setResponsiblesList);
-  }, []);
-
-  const downloadFile = (documentData, fallbackName) => {
+  const downloadFile = async (url, fallbackName) => {
     setMenuOpen(false);
+    const documentData = await fetchLatestDocument(url);
     if (!documentData) {
       setErrorMessage('Документ ещё не загружен. Обратитесь к администратору.');
       return;
     }
     const link = document.createElement('a');
     link.href = documentData.file;
-    link.download = documentData.name || fallbackName;
+    link.download = downloadName(documentData, fallbackName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -79,15 +84,22 @@ const Header = () => {
             {menuOpen && (
               <ul className='user-menu__dropdown'>
                 <li>
-                  <button type='button' onClick={() => downloadFile(userGuide, 'Руководство пользователя.pdf')}>
+                  <button type='button' onClick={() => downloadFile('/api/documents/', 'Руководство пользователя')}>
                     <FiBookOpen /> Руководство пользователя
                   </button>
                 </li>
                 <li>
-                  <button type='button' onClick={() => downloadFile(responsiblesList, 'Список ответственных.pdf')}>
+                  <button type='button' onClick={() => downloadFile('/api/responsible_list/', 'Список ответственных')}>
                     <FiUsers /> Список ответственных
                   </button>
                 </li>
+                {user.is_staff && (
+                  <li>
+                    <a className='user-menu__link' href='/admin/backend/document/' target='_blank' rel='noreferrer'>
+                      <FiUpload /> Обновить документы (админка)
+                    </a>
+                  </li>
+                )}
                 <li>
                   <button
                     type='button'

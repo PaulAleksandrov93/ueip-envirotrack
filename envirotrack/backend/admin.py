@@ -1,7 +1,10 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.models import User, Group
+from django.core.files.uploadedfile import UploadedFile
+from django.core.validators import FileExtensionValidator
 from django.utils.html import format_html
 
 from .models import (
@@ -38,15 +41,64 @@ class AdditionalParametersInline(admin.StackedInline):
     verbose_name_plural = 'Дополнительные параметры'
 
 
+DOCUMENT_EXTENSIONS = ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'odt')
+DOCUMENT_MAX_MB = 50  # совпадает с client_max_body_size в nginx.conf
+
+
+def document_form(model, default_name):
+    class DocumentFileForm(forms.ModelForm):
+        name = forms.CharField(
+            label='Название документа', required=False, max_length=255,
+            help_text=f'Под этим именем файл скачивается из меню. Если оставить пустым — «{default_name}».',
+        )
+        file = forms.FileField(
+            label='Файл',
+            validators=[FileExtensionValidator(DOCUMENT_EXTENSIONS)],
+            help_text=(
+                f"Форматы: {', '.join(DOCUMENT_EXTENSIONS)}; до {DOCUMENT_MAX_MB} МБ. "
+                'После сохранения старый файл удаляется, пользователи сразу получают новый.'
+            ),
+        )
+
+        class Meta:
+            fields = ('name', 'file')
+
+        def clean_name(self):
+            return self.cleaned_data['name'].strip() or default_name
+
+        def clean_file(self):
+            uploaded = self.cleaned_data['file']
+            if isinstance(uploaded, UploadedFile) and uploaded.size > DOCUMENT_MAX_MB * 1024 * 1024:
+                raise forms.ValidationError(f'Файл больше {DOCUMENT_MAX_MB} МБ.')
+            return uploaded
+
+    DocumentFileForm.Meta.model = model
+    return DocumentFileForm
+
+
 class LatestFileAdminMixin:
     """Хранит одну актуальную версию файла: удаляет предыдущие записи и файлы на диске."""
 
+    readonly_fields = ('uploaded_at',)
+    ordering = ('-uploaded_at',)
+    list_display = ('name', 'file_link', 'file_size', 'uploaded_at')
+    search_fields = ('name',)
+
     def file_link(self, obj):
         if obj.file:
-            return format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, obj.file.name)
+            return format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, obj.file.name.rsplit('/', 1)[-1])
         return '—'
 
     file_link.short_description = 'Файл'
+
+    def file_size(self, obj):
+        try:
+            size = obj.file.size
+        except (OSError, ValueError):
+            return 'нет на диске'
+        return f'{size / 1024 / 1024:.1f} МБ' if size >= 1024 * 1024 else f'{max(size // 1024, 1)} КБ'
+
+    file_size.short_description = 'Размер'
 
     def save_model(self, request, obj, form, change):
         if change and 'file' in form.changed_data:
@@ -160,18 +212,12 @@ class BuildingEnviromentalParametersAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(LatestFileAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'file_link', 'uploaded_at')
-    search_fields = ('name',)
-    ordering = ('-uploaded_at',)
-    readonly_fields = ('uploaded_at',)
+    form = document_form(Document, 'Руководство пользователя')
 
 
 @admin.register(ResponsibleList)
 class ResponsibleListAdmin(LatestFileAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'file_link', 'uploaded_at')
-    search_fields = ('name',)
-    ordering = ('-uploaded_at',)
-    readonly_fields = ('uploaded_at',)
+    form = document_form(ResponsibleList, 'Список ответственных')
 
 
 @admin.register(UserFilterPreference)
