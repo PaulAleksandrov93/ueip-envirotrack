@@ -21,25 +21,31 @@ export const AuthProvider = ({ children }) => {
 
   const loginUser = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:8000/api/token/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: e.target.username.value,
-        password: e.target.password.value,
-      }),
-    });
-    const data = await response.json();
+    const username = e.target.username.value;
+    const password = e.target.password.value;
 
-    if (response.status === 200) {
-      setAuthTokens(data);
-      setUser(jwt_decode(data.access));
-      localStorage.setItem("authTokens", JSON.stringify(data));
-      navigate("/rooms-parameters");
-    } else {
-      alert("Что-то пошло не так!");
+    try {
+      const response = await fetch("/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setAuthTokens(data);
+        setUser(jwt_decode(data.access));
+        localStorage.setItem("authTokens", JSON.stringify(data));
+        navigate("/rooms-parameters");
+        return { success: true }; // Успешный вход
+      } else {
+        return { error: "Неверное имя пользователя или пароль" }; // Ошибка авторизации
+      }
+    } catch (error) {
+      return { error: "Произошла ошибка при попытке входа" }; // Ошибка сети
     }
   };
 
@@ -51,26 +57,30 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateToken = async () => {
-    console.log("Обновление токена!");
-    const response = await fetch("http://localhost:8000/api/token/refresh/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refresh: authTokens?.refresh }),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch("/api/token/refresh/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: authTokens?.refresh }),
+      });
 
-    if (response.status === 200) {
-      setAuthTokens(data);
-      setUser(jwt_decode(data.access));
-      localStorage.setItem("authTokens", JSON.stringify(data));
-    } else {
-      logoutUser();
-    }
-
-    if (loading) {
-      setLoading(false);
+      if (response.status === 200) {
+        const data = await response.json();
+        setAuthTokens(data);
+        setUser(jwt_decode(data.access));
+        localStorage.setItem("authTokens", JSON.stringify(data));
+      } else if (response.status === 400 || response.status === 401) {
+        logoutUser();
+      }
+      // 5xx while the backend restarts: keep the session, the next refresh retries.
+    } catch {
+      // Network error: same as above.
+    } finally {
+      if (loading) {
+        setLoading(false);
+      }
     }
   };
 

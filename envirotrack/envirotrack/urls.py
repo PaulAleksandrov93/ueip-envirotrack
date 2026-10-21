@@ -1,15 +1,17 @@
-# admin.py
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.generic import TemplateView
-from backend.admin import custom_admin_site
 
+spa = TemplateView.as_view(template_name='index.html')
 
 urlpatterns = [
-    path('admin/', custom_admin_site.urls),
+    path('admin/', admin.site.urls),
     path('api/', include('backend.api.urls')),
-    path('', TemplateView.as_view(template_name='index.html')),
-    re_path(r'^login.*$', TemplateView.as_view(template_name='index.html')),
-    re_path(r'^parameter.*$', TemplateView.as_view(template_name='index.html')),
+    path('', spa),
+    re_path(r'^(login|about|boundary-parameters|rooms-parameters|buildings-parameters|measuring-instruments|room-parameter|building-parameter|measurement-instrument).*$', spa),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

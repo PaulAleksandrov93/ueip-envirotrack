@@ -1,0 +1,86 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+{% if dashboard %}
+<section class="et-dashboard">
+  <div class="et-cards">
+    <a class="et-card" href="{% url 'admin:backend_enviromentalparameters_changelist' %}?created_at__gte={{ dashboard.week_start|date:'Y-m-d' }}">
+      <span class="et-card__label">Записи по помещениям</span>
+      <span class="et-card__value">{{ dashboard.rooms_today }}</span>
+      <span class="et-card__hint">сегодня · {{ dashboard.rooms_week }} за 7 дней</span>
+    </a>
+    <a class="et-card" href="{% url 'admin:backend_buildingenviromentalparameters_changelist' %}?created_at__gte={{ dashboard.week_start|date:'Y-m-d' }}">
+      <span class="et-card__label">Записи по зданиям</span>
+      <span class="et-card__value">{{ dashboard.buildings_today }}</span>
+      <span class="et-card__hint">сегодня · {{ dashboard.buildings_week }} за 7 дней</span>
+    </a>
+    <a class="et-card {% if dashboard.instruments_expired %}et-card--danger{% endif %}" href="{% url 'admin:backend_measurementinstrument_changelist' %}?calibration=expired">
+      <span class="et-card__label">СИ с истёкшей поверкой</span>
+      <span class="et-card__value">{{ dashboard.instruments_expired }}</span>
+      <span class="et-card__hint">из {{ dashboard.instruments_total }} средств измерений</span>
+    </a>
+    <a class="et-card {% if dashboard.instruments_soon %}et-card--warning{% endif %}" href="{% url 'admin:backend_measurementinstrument_changelist' %}?calibration=soon">
+      <span class="et-card__label">Поверка в ближайшие 30 дней</span>
+      <span class="et-card__value">{{ dashboard.instruments_soon }}</span>
+      <span class="et-card__hint">запланируйте заранее</span>
+    </a>
+  </div>
+
+  <div class="et-panels">
+    <div class="module et-panel">
+      <h2>Документы для пользователей</h2>
+      <ul class="et-docs">
+        {% for doc in dashboard.documents %}
+        <li>
+          <div>
+            <strong>{{ doc.title }}</strong>
+            {% if doc.obj %}
+              <span class="et-muted">{{ doc.file_name }} · загружен {{ doc.obj.uploaded_at|date:'d.m.Y H:i' }}</span>
+            {% else %}
+              <span class="et-badge et-badge--danger">не загружен</span>
+            {% endif %}
+          </div>
+          <div class="et-docs__actions">
+            {% if doc.obj %}<a href="{{ doc.obj.file.url }}" target="_blank">Открыть</a>{% endif %}
+            <a class="button" href="{{ doc.add_url }}">{% if doc.obj %}Заменить файл{% else %}Загрузить{% endif %}</a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="module et-panel">
+      <h2>Поверка СИ: ближайшие сроки</h2>
+      {% if dashboard.upcoming %}
+      <table class="et-table">
+        <thead><tr><th>СИ</th><th>Зав. №</th><th>Годен до</th><th></th></tr></thead>
+        <tbody>
+          {% for si in dashboard.upcoming %}
+          <tr>
+            <td><a href="{% url 'admin:backend_measurementinstrument_change' si.pk %}">{{ si.name }} {{ si.type }}</a></td>
+            <td>{{ si.serial_number }}</td>
+            <td>{{ si.next_calibration_date|date:'d.m.Y' }}</td>
+            <td>{% if si.next_calibration_date < dashboard.today %}<span class="et-badge et-badge--danger">просрочена</span>{% else %}<span class="et-badge et-badge--warning">скоро</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="et-muted et-empty">Все средства измерений поверены, ближайших сроков нет.</p>
+      {% endif %}
+    </div>
+
+    <div class="module et-panel et-quick">
+      <h2>Быстрые действия</h2>
+      <a href="{% url 'admin:backend_measurementinstrument_add' %}">+ Средство измерений</a>
+      <a href="{% url 'admin:backend_room_add' %}">+ Помещение</a>
+      <a href="{% url 'admin:backend_building_add' %}">+ Здание</a>
+      <a href="{% url 'admin:backend_responsible_add' %}">+ Ответственный</a>
+      <a href="{% url 'admin:auth_user_add' %}">+ Пользователь</a>
+      <a href="/rooms-parameters" class="et-quick__site">Открыть журнал →</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+{{ block.super }}
+{% endblock %}

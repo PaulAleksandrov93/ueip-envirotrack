@@ -1,0 +1,550 @@
+/* Оформление админки в стиле журнала. Django 4.2 строит админку на CSS-переменных. */
+
+:root,
+html[data-theme="light"] {
+  --primary: #0b5cad;
+  --secondary: #0c2340;
+  --accent: #9fd2ff;
+  --primary-fg: #fff;
+
+  --body-fg: #1d2733;
+  --body-bg: #f4f6fa;
+  --body-quiet-color: #6b7787;
+  --body-loud-color: #0c2340;
+
+  --header-color: #c9d7ea;
+  --header-branding-color: #fff;
+  --header-bg: #0c2340;
+  --header-link-color: #fff;
+
+  --breadcrumbs-fg: #4d5b6c;
+  --breadcrumbs-link-fg: #0b5cad;
+  --breadcrumbs-bg: #ffffff;
+
+  --link-fg: #0b5cad;
+  --link-hover-color: #094e94;
+  --link-selected-fg: #0b5cad;
+
+  --hairline-color: #e3e8ef;
+  --border-color: #d5dce6;
+  --selected-bg: #eaf2fb;
+  --selected-row: #eaf2fb;
+
+  --button-fg: #fff;
+  --button-bg: #0b5cad;
+  --button-hover-bg: #094e94;
+  --default-button-bg: #0c2340;
+  --default-button-hover-bg: #11406f;
+  --close-button-bg: #7b8796;
+  --close-button-hover-bg: #4d5b6c;
+  --delete-button-bg: #c62f2f;
+  --delete-button-hover-bg: #a82525;
+
+  --object-tools-bg: #4d5b6c;
+  --object-tools-hover-bg: #0b5cad;
+
+  --message-success-bg: #e7f5ed;
+  --message-warning-bg: #fdf5e6;
+  --message-error-bg: #fdeeee;
+
+  --darkened-bg: #f7f9fc;
+
+  --font-family-primary: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --et-radius: 10px;
+  --et-shadow: 0 1px 3px rgba(16, 32, 56, 0.08), 0 4px 14px rgba(16, 32, 56, 0.05);
+  --et-danger: #c62f2f;
+  --et-danger-bg: #fdeeee;
+  --et-warning: #a8691a;
+  --et-warning-bg: #fdf5e6;
+  --et-success: #1f8a4c;
+  --et-success-bg: #e7f5ed;
+}
+
+html[data-theme="dark"] {
+  --primary: #3d8bdb;
+  --secondary: #0c2340;
+  --header-bg: #0c2340;
+  --link-fg: #7fb6ee;
+  --link-hover-color: #a9cff5;
+  --button-bg: #2f77c4;
+  --button-hover-bg: #3d8bdb;
+  --breadcrumbs-bg: #1d2733;
+  --et-danger-bg: #3a1e1e;
+  --et-warning-bg: #3a2e1a;
+  --et-success-bg: #1a3324;
+}
+
+body {
+  font-size: 14px;
+}
+
+/* ---------- Шапка ---------- */
+
+#header {
+  height: 60px;
+  padding: 0 28px;
+  background: linear-gradient(90deg, #0c2340 0%, #11406f 100%);
+  box-shadow: 0 2px 10px rgba(12, 35, 64, 0.25);
+}
+
+.et-brand a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fff !important;
+  text-decoration: none;
+}
+
+.et-brand__logo {
+  width: 64px;
+  height: auto;
+}
+
+.et-brand__divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.et-brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.et-brand__text strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.et-brand__text small {
+  font-size: 12px;
+  color: var(--header-color);
+}
+
+#user-tools {
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#user-tools a,
+#logout-form button {
+  border-bottom: 0;
+  color: #fff;
+}
+
+#user-tools a:hover,
+#logout-form button:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ---------- Хлебные крошки и контент ---------- */
+
+div.breadcrumbs {
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--hairline-color);
+  font-size: 13px;
+}
+
+#content {
+  padding: 24px 28px;
+}
+
+#content h1 {
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--body-loud-color);
+}
+
+/* ---------- Модули ---------- */
+
+.module {
+  border: 1px solid var(--hairline-color);
+  border-radius: var(--et-radius);
+  background: var(--body-bg) linear-gradient(var(--body-bg), var(--body-bg));
+  box-shadow: var(--et-shadow);
+  overflow: hidden;
+}
+
+html[data-theme="light"] .module,
+html[data-theme="auto"] .module {
+  background: #fff;
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+  padding: 10px 14px;
+  background: var(--secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#content-main .module caption a.section,
+.module caption a.section {
+  color: #fff;
+}
+
+.app-list .module tr th a,
+#content-main .module th a {
+  font-weight: 600;
+}
+
+.module table tr:hover td,
+.module table tr:hover th {
+  background: var(--selected-bg);
+}
+
+/* ---------- Кнопки ---------- */
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: 600;
+}
+
+.submit-row {
+  border-radius: var(--et-radius);
+  border: 1px solid var(--hairline-color);
+}
+
+.object-tools a {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* ---------- Формы ---------- */
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select,
+.vTextField {
+  border-radius: 8px;
+  padding: 7px 10px;
+  border-color: var(--border-color);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(11, 92, 173, 0.18);
+  outline: none;
+}
+
+.form-row {
+  padding: 12px 14px;
+}
+
+.help,
+p.help,
+form .help {
+  color: var(--body-quiet-color);
+  font-size: 12px;
+}
+
+fieldset.module {
+  margin-bottom: 18px;
+}
+
+/* ---------- Списки ---------- */
+
+#changelist .actions {
+  border-radius: var(--et-radius) var(--et-radius) 0 0;
+}
+
+#changelist-filter {
+  border-radius: var(--et-radius);
+  border: 1px solid var(--hairline-color);
+  box-shadow: var(--et-shadow);
+}
+
+#changelist-filter h2 {
+  border-radius: var(--et-radius) var(--et-radius) 0 0;
+  background: var(--secondary);
+  color: #fff;
+}
+
+#changelist table thead th {
+  background: var(--darkened-bg);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ---------- Боковая навигация ---------- */
+
+#nav-sidebar .module caption,
+#nav-sidebar .module h2 {
+  font-size: 11px;
+}
+
+#nav-sidebar .current-model {
+  background: var(--selected-bg);
+}
+
+/* ---------- Бейджи статусов ---------- */
+
+.et-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.et-badge--success {
+  background: var(--et-success-bg);
+  color: var(--et-success);
+}
+
+.et-badge--warning {
+  background: var(--et-warning-bg);
+  color: var(--et-warning);
+}
+
+.et-badge--danger {
+  background: var(--et-danger-bg);
+  color: var(--et-danger);
+}
+
+.et-muted {
+  color: var(--body-quiet-color);
+  font-size: 12px;
+}
+
+/* ---------- Сводка на главной ---------- */
+
+/* В dashboard.css Django главная ограничена 600px. */
+.dashboard #content {
+  width: auto;
+  max-width: none;
+}
+
+/* Боковая колонка «Последние действия» занимает 300px справа (.colMS). */
+.dashboard #content-related {
+  width: 280px;
+  margin-right: -300px;
+}
+
+.et-dashboard {
+  margin-bottom: 24px;
+}
+
+.dashboard .et-dashboard {
+  margin-right: -300px;
+}
+
+.et-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.et-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline-color);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--et-radius);
+  background: #fff;
+  box-shadow: var(--et-shadow);
+  color: var(--body-fg) !important;
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+html[data-theme="dark"] .et-card {
+  background: var(--darkened-bg);
+}
+
+.et-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 32, 56, 0.12);
+}
+
+.et-card--danger {
+  border-left-color: var(--et-danger);
+}
+
+.et-card--warning {
+  border-left-color: #e0a030;
+}
+
+.et-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--body-quiet-color);
+}
+
+.et-card__value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--body-loud-color);
+}
+
+.et-card--danger .et-card__value {
+  color: var(--et-danger);
+}
+
+.et-card__hint {
+  font-size: 12px;
+  color: var(--body-quiet-color);
+}
+
+.et-panels {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr 0.7fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.et-panel {
+  margin: 0;
+}
+
+.et-docs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.et-docs li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--hairline-color);
+  list-style: none;
+}
+
+.et-docs li:last-child {
+  border-bottom: 0;
+}
+
+.et-docs li > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.et-docs__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.et-docs__actions .button {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.et-table {
+  width: 100%;
+}
+
+.et-table th {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--body-quiet-color);
+  background: var(--darkened-bg);
+}
+
+.et-table td,
+.et-table th {
+  padding: 8px 14px;
+  vertical-align: middle;
+}
+
+.et-empty {
+  padding: 14px;
+}
+
+.et-quick {
+  display: flex;
+  flex-direction: column;
+}
+
+.et-quick a {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline-color);
+  font-weight: 600;
+}
+
+.et-quick a:hover {
+  background: var(--selected-bg);
+  text-decoration: none;
+}
+
+.et-quick__site {
+  color: var(--primary);
+}
+
+/* ---------- Вход ---------- */
+
+body.login {
+  background: radial-gradient(1200px 500px at 50% -10%, #11406f 0%, #0c2340 55%, #08192e 100%);
+}
+
+.login #container {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.login #header {
+  height: auto;
+  padding: 18px 22px;
+}
+
+.login .et-brand__logo {
+  width: 52px;
+}
+
+.login #content {
+  padding: 22px;
+}
+
+.login .submit-row input {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .et-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .et-panels {
+    grid-template-columns: 1fr;
+  }
+}

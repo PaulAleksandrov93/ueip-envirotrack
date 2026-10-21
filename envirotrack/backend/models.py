@@ -278,4 +278,28 @@ class ResponsibleList(models.Model):
     class Meta:
         verbose_name = 'Список ответственных'
         verbose_name_plural = 'Списки ответственных'
-        
+
+
+class UserFilterPreference(models.Model):
+    SCOPE_ROOMS = 'rooms'
+    SCOPE_BUILDINGS = 'buildings'
+    SCOPE_CHOICES = [
+        (SCOPE_ROOMS, 'Записи по помещениям'),
+        (SCOPE_BUILDINGS, 'Записи по зданиям'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='filter_preferences', verbose_name='Пользователь')
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, verbose_name='Раздел')
+    filters = models.JSONField(default=dict, blank=True, verbose_name='Фильтры')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
+
+    def __str__(self):
+        return f'{self.user} — {self.get_scope_display()}'
+
+    class Meta:
+        verbose_name = 'Сохранённый фильтр'
+        verbose_name_plural = 'Сохранённые фильтры'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'scope'], name='unique_filter_preference_per_scope'),
+        ]
+

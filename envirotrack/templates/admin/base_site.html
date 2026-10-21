@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'backend/admin.css' %}?v=6">{% endblock %}
+
+{% block branding %}
+<div id="site-name" class="et-brand">
+  <a href="{% url 'admin:index' %}">
+    <img src="{% static 'backend/logo.svg' %}" alt="" class="et-brand__logo">
+    <span class="et-brand__divider"></span>
+    <span class="et-brand__text">
+      <strong>Журнал регистрации параметров окружающей среды</strong>
+      <small>Администрирование</small>
+    </span>
+  </a>
+</div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

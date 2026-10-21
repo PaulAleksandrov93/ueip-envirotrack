@@ -1,35 +1,49 @@
-/* SubHeader.css */
-
 .sub-header {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.sub-header__inner {
   display: flex;
-  justify-content: space-around;
+  gap: 4px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.sub-header__tab {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  background-color: #4596d1; 
-  padding: 10px 0;
-  transition: background-color 0.3s ease;
+  gap: 8px;
+  height: 50px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  transition: color 0.15s ease;
 }
 
-.sub-header a {
-  text-decoration: none;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 18px; 
-  transition: background-color 0.3s ease, transform 0.3s ease;
+.sub-header__tab svg {
+  width: 16px;
+  height: 16px;
 }
 
-.sub-header a:hover {
-  background-color: #357dbf;
-  border-radius: 5px;
-  transform: scale(1.1);
+.sub-header__tab:hover {
+  color: var(--c-brand);
 }
 
-.sub-header a.active {
-  background-color: #357dbf;
-  border-radius: 5px;
+.sub-header__tab.is-active {
+  color: var(--c-brand);
 }
 
-.sub-header a.active:hover {
-  transform: scale(1);
-  border-radius: 5px;
+.sub-header__tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--c-brand);
 }
