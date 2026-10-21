@@ -57,26 +57,30 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateToken = async () => {
-    console.log("Обновление токена!");
-    const response = await fetch("/api/token/refresh/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refresh: authTokens?.refresh }),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch("/api/token/refresh/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: authTokens?.refresh }),
+      });
 
-    if (response.status === 200) {
-      setAuthTokens(data);
-      setUser(jwt_decode(data.access));
-      localStorage.setItem("authTokens", JSON.stringify(data));
-    } else {
-      logoutUser();
-    }
-
-    if (loading) {
-      setLoading(false);
+      if (response.status === 200) {
+        const data = await response.json();
+        setAuthTokens(data);
+        setUser(jwt_decode(data.access));
+        localStorage.setItem("authTokens", JSON.stringify(data));
+      } else if (response.status === 400 || response.status === 401) {
+        logoutUser();
+      }
+      // 5xx while the backend restarts: keep the session, the next refresh retries.
+    } catch {
+      // Network error: same as above.
+    } finally {
+      if (loading) {
+        setLoading(false);
+      }
     }
   };
 

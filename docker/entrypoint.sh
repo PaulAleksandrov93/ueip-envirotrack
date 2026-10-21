@@ -3,6 +3,8 @@ set -e
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
     python manage.py migrate --noinput
+    # Стили и скрипты админки отдаёт nginx из envirotrack/static.
+    python manage.py collectstatic --noinput -v 0
 
     python - <<'PY'
 import os
