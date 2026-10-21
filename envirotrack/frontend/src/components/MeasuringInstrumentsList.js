@@ -1,7 +1,7 @@
 // MeasuringInstrumentsList.js
 
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { FiPlus, FiRotateCcw } from 'react-icons/fi';
+import { FiPlus, FiRotateCcw, FiSearch } from 'react-icons/fi';
 import SubHeader from '../components/SubHeader';
 import MeasuringInstrumentForm from './MeasuringInstrumentsForm';
 import AuthContext from '../context/AuthContext';
@@ -42,6 +42,8 @@ const MeasuringInstrumentsList = () => {
   const { authTokens } = useContext(AuthContext);
   const [measuringInstruments, setMeasuringInstruments] = useState([]);
   const [searchParams, setSearchParams] = useState(EMPTY_SEARCH);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [editingMeasuringInstrumentId, setEditingMeasuringInstrumentId] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -51,6 +53,7 @@ const MeasuringInstrumentsList = () => {
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value !== '') params.append(key, value);
       });
+      if (debouncedQuery.trim()) params.append('q', debouncedQuery.trim());
 
       const response = await fetch(`/api/filterMeasurementInstruments/?${params.toString()}`, {
         headers: authTokens ? { Authorization: 'Bearer ' + authTokens.access } : {},
@@ -63,7 +66,12 @@ const MeasuringInstrumentsList = () => {
     }
     // Token refreshes must not refetch the table.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, debouncedQuery]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     fetchMeasuringInstruments();
@@ -90,7 +98,13 @@ const MeasuringInstrumentsList = () => {
     setSearchParams((prev) => ({ ...prev, [name]: value }));
   };
 
-  const hasSearch = Object.values(searchParams).some((value) => value !== '');
+  const hasSearch = query !== '' || Object.values(searchParams).some((value) => value !== '');
+
+  const clearAll = () => {
+    setQuery('');
+    setDebouncedQuery('');
+    setSearchParams(EMPTY_SEARCH);
+  };
 
   return (
     <>
@@ -101,9 +115,20 @@ const MeasuringInstrumentsList = () => {
             Средства измерений <span className="page-toolbar__count">· {measuringInstruments.length}</span>
           </h1>
           <div className="page-toolbar__actions">
+            <div className="si-search">
+              <FiSearch />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск по всем полям: название, тип, №, характеристики, дата, «годен»…"
+                aria-label="Поиск по всем полям"
+                title="Несколько слов ищутся вместе. Дату можно вводить как 12.05.2026 или 05.2026"
+              />
+            </div>
             {hasSearch && (
-              <button type="button" className="btn btn--ghost" onClick={() => setSearchParams(EMPTY_SEARCH)}>
-                <FiRotateCcw /> Очистить фильтры
+              <button type="button" className="btn btn--ghost" onClick={clearAll}>
+                <FiRotateCcw /> Очистить
               </button>
             )}
             {authTokens && (

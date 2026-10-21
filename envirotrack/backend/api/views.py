@@ -43,7 +43,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token['username'] = user.username
-        # ...
+        token['is_staff'] = user.is_staff
 
         return token
 
@@ -1720,6 +1720,43 @@ def filterBuildingEnvironmentalParameters(request):
         return Response({'error': 'Произошла ошибка при фильтрации параметров'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+INSTRUMENT_TEXT_FIELDS = ('registration_number', 'name', 'type', 'serial_number', 'metrological_characteristics')
+
+
+def _parse_search_date(term):
+    for fmt in ('%d.%m.%Y', '%Y-%m-%d', '%d.%m.%y'):
+        try:
+            return datetime.strptime(term, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _instrument_term_filter(term, today):
+    """Одно слово поиска: совпадение хотя бы с одним полем СИ."""
+    condition = Q()
+    for field in INSTRUMENT_TEXT_FIELDS:
+        condition |= Q(**{f'{field}__icontains': term})
+
+    if term.isdigit():
+        condition |= Q(year_of_manufacture=int(term)) | Q(calibration_interval=int(term))
+
+    date = _parse_search_date(term)
+    if date:
+        condition |= Q(calibration_date=date) | Q(next_calibration_date=date)
+    elif re.fullmatch(r'\d{1,2}\.\d{4}', term):
+        month, year = (int(part) for part in term.split('.'))
+        condition |= Q(calibration_date__year=year, calibration_date__month=month)
+        condition |= Q(next_calibration_date__year=year, next_calibration_date__month=month)
+
+    word = term.lower()
+    if 'годен'.startswith(word) and len(word) >= 3:
+        condition |= Q(next_calibration_date__gte=today) | Q(next_calibration_date__isnull=True, suitability=True)
+    if 'брак'.startswith(word) and len(word) >= 3:
+        condition |= Q(next_calibration_date__lt=today) | Q(next_calibration_date__isnull=True, suitability=False)
+    return condition
+
+
 @api_view(['GET'])
 def filterMeasurementInstruments(request):
     try:
@@ -1745,7 +1782,10 @@ def filterMeasurementInstruments(request):
             filters &= Q(next_calibration_date=query_params['next_calibration_date'])
         if query_params.get('year_of_manufacture'):
             filters &= Q(year_of_manufacture=query_params['year_of_manufacture'])
-        
+
+        for term in (query_params.get('q') or '').split():
+            filters &= _instrument_term_filter(term, today)
+
         instruments = MeasurementInstrument.objects.filter(filters).order_by('-next_calibration_date')
         
         # ФИЛЬТРАЦИЯ ПО ПРИГОДНОСТИ (по актуальной дате)

@@ -65,3 +65,23 @@
   font-size: 12px;
   border-radius: var(--radius-sm);
 }
+
+.si-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 460px;
+}
+
+.si-search svg {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--c-muted);
+  pointer-events: none;
+}
+
+.si-search input {
+  padding-left: 36px;
+}
